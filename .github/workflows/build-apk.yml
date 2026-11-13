@@ -85,18 +85,18 @@ jobs:
         run: gradle :app:assembleDebug --no-daemon
 
       - name: Rename APK
-        run: cp app/build/outputs/apk/debug/app-debug.apk OmniDeck-debug.apk
+        run: cp app/build/outputs/apk/debug/app-debug.apk OmniDeck.apk
 
       - name: Upload APK as Workflow Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: OmniDeck-debug-apk
-          path: OmniDeck-debug.apk
+          name: OmniDeck-apk
+          path: OmniDeck.apk
 
       - name: Publish APK to GitHub Releases
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'latest' }}
           name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || 'Omni Deck Latest Build' }}
-          files: OmniDeck-debug.apk
+          files: OmniDeck.apk
           make_latest: true
