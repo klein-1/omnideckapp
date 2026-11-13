@@ -1,0 +1,6 @@
+{
+  "name": "Omni Deck",
+  "description": "Clean Swiss minimalist Android multi-tool suite with media downloader, URL checker, local HTTP/HTTPS server, Image Studio, PDF Lab, and 14 utility categories.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

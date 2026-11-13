@@ -1,0 +1,923 @@
+Each tool appears once. Modes and variants are in parentheses.
+
+**Core features**
+- Dashboard overview (all key specs at a glance)
+- Category tabs
+- Search specs
+- Live / real-time refresh
+- Copy any value (long-press)
+- Share full report
+- Export report (TXT, PDF, JSON, CSV, HTML)
+- Compare with another device
+- Device database (look up other models)
+- Save snapshots
+- Snapshot history / diff over time
+- Offline mode
+- Quick-copy summary (for support tickets)
+- Verified / unverified data labels
+
+**Device identity**
+- Device name (marketing name, codename, model number)
+- Manufacturer / brand
+- Product / board / hardware name
+- Device type (phone, tablet, TV, watch, foldable, laptop, desktop)
+- Serial number
+- IMEI / MEID / ESN
+- Android ID / advertising ID / vendor ID
+- Device ID / UDID
+- Build fingerprint
+- Build ID / tags / type
+- Bootloader version
+- Hardware revision
+- Manufacturing date
+- Region / carrier variant
+- Warranty status
+- Release date
+- Launch price
+- Official spec sheet link
+
+**Operating system**
+- OS name / version
+- API / SDK level
+- Security patch level
+- Kernel version
+- Kernel architecture
+- Baseband / modem version
+- Build date
+- Uptime
+- Last boot time
+- Android / iOS version history
+- Update availability
+- Update support timeline (end of support)
+- Project Treble / A/B partition / dynamic partition status
+- Google Play services / WebView / Chrome versions
+- OEM skin / UI version
+- Language / locale / region
+- Time zone / time format
+- Installed fonts
+- Java VM / runtime version
+- OpenSSL / system libraries
+- SELinux status
+- Verified boot status
+- Bootloader lock status
+- Developer options status
+- USB debugging status
+- Default apps
+
+**Processor (CPU)**
+- Chipset / SoC name
+- CPU model
+- Architecture (ARMv8, ARM64, x86, x64)
+- Instruction sets / ABIs
+- CPU features / flags (NEON, SSE, AVX, AES)
+- Core count (big.LITTLE / DynamIQ clusters)
+- Per-core frequency (current, min, max)
+- Per-core load
+- Governor
+- Scheduler
+- Fabrication process (nm)
+- Cache sizes (L1, L2, L3)
+- Clock speed history graph
+- Core online / offline status
+- CPU temperature
+- CPU usage (total, per app)
+- Load average
+- CPU idle states
+- CPU topology
+- Microarchitecture details
+- TDP / power
+- Hyper-threading / SMT status
+- Virtualization support
+
+**GPU & graphics**
+- GPU model
+- GPU vendor
+- GPU frequency
+- GPU load
+- GPU temperature
+- OpenGL ES version
+- Vulkan version
+- DirectX version
+- Metal support
+- OpenCL / RenderScript support
+- GL extensions list
+- Vulkan extensions / features
+- Max texture size
+- Supported compressed texture formats
+- Shader / compute capability
+- Ray-tracing support
+- GPU memory
+- GPU driver version
+- Hardware acceleration status
+- ANGLE / renderer info
+- Frame rate (live FPS)
+- Frame time graph
+- Jank / dropped frames
+
+**Memory (RAM)**
+- Total RAM
+- Available / free RAM
+- Used RAM (apps, system, cached, buffers)
+- RAM type (LPDDR4X, LPDDR5)
+- RAM speed / frequency
+- RAM channels
+- Virtual RAM / extended RAM
+- Swap / zRAM usage
+- Memory pressure
+- Per-app memory usage
+- Memory leak finder
+- Low memory killer thresholds
+- Heap size limits
+- RAM cleaner / booster
+- Memory usage history graph
+
+**Storage**
+- Internal storage (total, used, free)
+- Storage type (UFS, eMMC, NVMe, SSD, HDD)
+- Storage version (UFS 3.1, 4.0)
+- Partition list (system, data, cache, vendor)
+- File system type (ext4, F2FS, APFS, NTFS)
+- SD card (total, used, free, class, speed rating)
+- USB OTG storage
+- Read / write speed test (sequential, random)
+- Storage health / wear level
+- Bad block / SMART data
+- Storage breakdown (apps, photos, videos, audio, documents, cache, other)
+- Largest files finder
+- Large folders finder
+- Duplicate files finder
+- Junk / cache cleaner
+- Storage trend / forecast
+- Encryption status
+- Mount points
+- Inode usage
+- Adoptable storage status
+
+**Battery**
+- Battery level (%)
+- Charging status (charging, discharging, full)
+- Charger type (AC, USB, wireless, fast charge)
+- Charging speed (mA / W)
+- Voltage
+- Current (instant, average)
+- Temperature
+- Health (good, overheat, dead, cold)
+- Battery technology (Li-ion, Li-Po)
+- Design capacity (mAh)
+- Current / estimated capacity
+- Wear / degradation %
+- Cycle count
+- Time remaining (to full / to empty)
+- Screen-on time
+- Screen-off time
+- Deep sleep time
+- Active use time
+- Battery usage per app
+- Wakelock tracker
+- Battery drain rate (%/hour)
+- Charge history graph
+- Discharge history graph
+- Charging log
+- Charging session stats
+- Charger / cable quality test
+- Charge limit / protection (80% limit)
+- Battery full alarm
+- Low battery alarm
+- Overheat alarm
+- Battery saver status
+- Power profile
+- Adaptive battery status
+- Estimated lifespan
+- Battery calibration helper
+- Battery tips
+
+**Display**
+- Resolution (pixels)
+- Screen size (diagonal)
+- Pixel density (PPI / DPI)
+- Density bucket (mdpi, hdpi, xhdpi, xxhdpi, xxxhdpi)
+- Aspect ratio
+- Refresh rate (current, supported, adaptive / LTPO)
+- Panel type (LCD, IPS, OLED, AMOLED, LTPO)
+- Brightness (current, max, auto)
+- HDR support (HDR10, HDR10+, Dolby Vision)
+- Color depth / gamut / color space (sRGB, DCI-P3)
+- Wide color gamut status
+- Touch sampling rate
+- Screen timeout
+- Notch / cutout / punch-hole info
+- Safe area / insets
+- Status bar / navigation bar height
+- Rotation / orientation
+- Foldable state (open, closed, hinge angle)
+- Multi-window / split-screen status
+- External display info
+- Screen cast / mirroring status
+- Always-on display status
+- Dark mode status
+- Font scale
+- Display zoom / size scale
+- Viewport / CSS pixels
+- Pixel ratio (device pixel ratio)
+- Color calibration
+- Screen burn-in / ghost touch test
+- Dead pixel test
+- Touch test (multi-touch, ghost touch)
+- Display response (PWM flicker test)
+- Screen uniformity test
+- Gradient / banding test
+- Screen light leak / backlight bleed test
+- Color accuracy test
+
+**Camera**
+- Camera list (rear, front, ultra-wide, telephoto, macro, depth, periscope, TOF)
+- Megapixels
+- Sensor size
+- Sensor model
+- Pixel size
+- Aperture (f-stop)
+- Focal length (35mm equiv.)
+- Field of view
+- Optical image stabilization (OIS)
+- Electronic image stabilization (EIS)
+- Autofocus type (PDAF, laser, contrast)
+- Flash type / availability
+- Supported resolutions
+- Supported video resolutions (720p to 8K)
+- Supported FPS
+- Supported formats (JPEG, HEIC, RAW, DNG)
+- Camera2 API level
+- CameraX support
+- RAW capture support
+- Manual controls support (ISO, shutter, focus, white balance)
+- ISO range
+- Exposure range
+- Zoom range (optical, digital)
+- HDR support
+- Face detection support
+- Concurrent camera support
+- Physical camera ID
+- Camera hardware level (legacy, limited, full, level 3)
+- Camera sensor orientation
+- Camera permissions status
+
+**Network (Wi-Fi)**
+- Connection status
+- SSID / BSSID
+- IP address (IPv4, IPv6)
+- Gateway / subnet / DNS
+- DHCP server
+- MAC address (device, randomized)
+- Wi-Fi standard (802.11 a/b/g/n/ac/ax/be, Wi-Fi 6, 6E, 7)
+- Frequency band (2.4 / 5 / 6 GHz)
+- Channel / channel width
+- Link speed (TX / RX)
+- Signal strength (RSSI dBm)
+- Signal quality
+- Security type (WPA2, WPA3, WEP, open)
+- Saved networks list
+- Saved Wi-Fi passwords
+- Nearby networks scan (signal, channel, vendor, security)
+- Channel congestion graph
+- Signal strength meter (live)
+- Wi-Fi Direct / Wi-Fi Aware / Wi-Fi RTT support
+- Hotspot status
+- Connected devices (hotspot clients)
+- Router info
+- Router vendor lookup
+- Wi-Fi roaming info
+
+**Network (mobile & SIM)**
+- Carrier / operator name
+- MCC / MNC
+- Network type (2G, 3G, 4G LTE, 5G NSA, 5G SA)
+- Signal strength (dBm, ASU, bars)
+- SINR / RSRP / RSRQ / RSSNR
+- Cell ID / LAC / TAC / PCI / eNB ID
+- Band / ARFCN / EARFCN
+- Carrier aggregation status
+- Supported bands (2G / 3G / 4G / 5G)
+- Roaming status
+- Data state
+- APN settings
+- SIM state
+- SIM slot count / dual SIM / eSIM
+- SIM serial number (ICCID)
+- IMSI
+- Phone number
+- Voicemail number
+- VoLTE / VoWiFi / VoNR support
+- Cell tower map
+- Nearby cell towers
+- Network mode setting
+- Data usage (daily, monthly, per app)
+- Data warning / limit
+- Mobile data speed test
+
+**Network (general tools)**
+- Public IP
+- IP geolocation (country, city, ISP, ASN)
+- Internet speed test (download, upload, ping, jitter)
+- Latency monitor
+- Ping
+- Traceroute
+- DNS lookup
+- Reverse DNS
+- WHOIS
+- Port scanner
+- Port checker
+- LAN scanner (devices on network)
+- Network usage per app (live)
+- Packet loss test
+- Bandwidth monitor
+- VPN status
+- Proxy status
+- Private DNS status
+- Firewall status
+- Network interface list (wlan0, rmnet, lo, eth0)
+- Routing table
+- ARP table
+- Active connections list
+- Listening ports
+- Network latency graph
+- Wi-Fi vs mobile comparison
+- Captive portal check
+- IPv6 test
+- MTU detection
+- Network type history
+
+**Bluetooth & wireless**
+- Bluetooth version
+- Bluetooth LE support
+- Bluetooth device name / address
+- Supported profiles (A2DP, HFP, HID, GATT)
+- Supported audio codecs (SBC, AAC, aptX, aptX HD, LDAC, LC3)
+- Bluetooth LE Audio support
+- Paired devices list
+- Nearby devices scanner
+- BLE scanner (RSSI, services, UUIDs, manufacturer data)
+- Connected devices
+- Bluetooth battery levels (connected devices)
+- Bluetooth signal meter
+- Bluetooth range test
+- NFC support / status
+- NFC tag reader
+- NFC tag type / technology
+- NFC tag writer
+- NFC payment support (HCE)
+- UWB support
+- Infrared (IR) blaster support
+- Wi-Fi Direct peers
+- Cast / Miracast / AirPlay devices
+- Satellite connectivity support
+- FM radio support
+- Thread / Zigbee / Matter support
+
+**Location & GPS**
+- GPS status
+- Latitude / longitude
+- Altitude
+- Accuracy
+- Speed
+- Bearing
+- Satellites in view / in use
+- Satellite constellations (GPS, GLONASS, Galileo, BeiDou, QZSS, NavIC, SBAS)
+- Satellite signal strength (C/N0)
+- Satellite sky plot
+- Fix type / time to first fix
+- Dual-frequency GNSS support (L1 / L5)
+- GNSS raw measurements support
+- A-GPS data status
+- Location provider status
+- Location mode
+- Location history
+- Address / reverse geocode
+- Coordinate formats (decimal, DMS, UTM, MGRS, Plus Code)
+- Magnetic declination
+- Magnetic / true heading
+- Compass (live, calibration)
+- Time zone from location
+- Sunrise / sunset at location
+- Mock location detection
+- GPS reset / A-GPS refresh
+- Location sharing
+- Saved places
+
+**Sensors**
+- Sensor list (all, with vendor, version, range, resolution, power, min delay)
+- Accelerometer (3-axis live, graph)
+- Gyroscope
+- Magnetometer
+- Gravity sensor
+- Linear acceleration
+- Rotation vector (game, geomagnetic)
+- Orientation (azimuth, pitch, roll)
+- Ambient light (lux)
+- Proximity (cm)
+- Barometer / pressure (hPa)
+- Altimeter
+- Ambient temperature
+- Humidity
+- Heart rate
+- Step counter
+- Step detector
+- Significant motion
+- Pick-up gesture
+- Tilt detector
+- Hinge angle sensor
+- Hall sensor
+- Fingerprint sensor type
+- Face unlock hardware type (2D, 3D)
+- Under-display sensor
+- Color / spectrum sensor
+- Flicker sensor
+- UV sensor
+- LiDAR / ToF
+- Radar (Soli)
+- Wake-up / non-wake-up sensor flags
+- Sensor sampling rate test
+- Sensor calibration
+- Sensor noise / drift test
+- Sensor logger (record, export CSV)
+- Sensor fusion visualizer
+- Sensor graphs (live)
+- Vibration meter
+- Magnetic field strength (µT)
+- Metal detector
+- Level / inclinometer
+- Sound level (dB)
+- Light meter
+
+**Audio**
+- Speaker type (mono, stereo, dual)
+- Audio codec chip
+- Supported audio formats / codecs
+- Supported sample rates / bit depths
+- Hi-Res audio support
+- Spatial audio / Dolby Atmos support
+- Headphone jack presence
+- Audio output devices list (speaker, earpiece, headset, Bluetooth, USB)
+- Audio input devices list
+- Microphone count / type
+- Noise cancellation support
+- Media volume / ringer / alarm levels
+- Audio latency (output, round-trip)
+- Low-latency audio support
+- Audio effects list
+- Audio focus status
+- Speaker test (left, right, frequency sweep)
+- Microphone test (level, record / playback)
+- Earpiece test
+- Headphone test
+- Vibration motor test (haptic patterns)
+- Haptic feedback support
+- Frequency response test
+- Speaker water ejection (sound-based)
+- Ringtone / notification sound list
+- DRM / Widevine level (L1, L2, L3)
+- MediaCodec list (hardware / software encoders and decoders)
+- Supported video codecs (H.264, H.265, VP9, AV1)
+- Hardware video decoder / encoder capabilities
+- Max supported video resolution / bitrate
+
+**Connectivity & ports**
+- USB version / type (2.0, 3.x, 4, Thunderbolt)
+- USB mode (charging, MTP, PTP, MIDI, tethering)
+- USB host (OTG) support
+- USB accessory support
+- USB devices connected (VID / PID, class)
+- USB debugging status
+- USB-C display out / DisplayPort alt mode support
+- Charging protocol support (PD, QC, VOOC, SuperVOOC, PPS)
+- Wireless charging support (Qi, MagSafe, reverse)
+- HDMI / external display
+- Headphone jack
+- SD card slot
+- SIM tray
+- Ethernet (via adapter)
+- Docking / desktop mode
+- Accessory list (keyboard, mouse, gamepad, stylus)
+- Stylus support / info
+- Game controller test (buttons, sticks, triggers)
+
+**Input & peripherals**
+- Touchscreen specs (touch points, sampling rate, palm rejection)
+- Multi-touch tester
+- Touch latency test
+- Keyboard info (layout, language, installed keyboards)
+- Physical keyboard tester
+- Mouse / trackpad tester
+- Gamepad tester
+- Button tester (volume, power, home, back)
+- Fingerprint sensor test
+- Face unlock test
+- Stylus / pen tester (pressure, tilt)
+- Gesture navigation status
+- Voice assistant / hotword support
+- Speech recognition engines
+- Input methods list
+- Accessibility services list
+
+**Apps & software**
+- Installed apps list (user, system, disabled, hidden)
+- App details (package name, version, version code, install date, update date, install source)
+- Target / min SDK
+- App size (app, data, cache)
+- APK path / extract APK
+- Permissions list (granted, denied, dangerous)
+- App signing certificate (SHA-1, SHA-256, MD5)
+- App components (activities, services, receivers, providers)
+- App manifest viewer
+- App ABI / architecture (32-bit, 64-bit)
+- Apps by permission
+- Apps by install source
+- Apps by target SDK (outdated apps)
+- Apps by size
+- Apps by last used
+- Apps by battery / data / storage / memory use
+- Unused apps finder
+- Running apps / services
+- Startup / autostart apps
+- Background activity
+- Default apps
+- Device admin apps
+- Accessibility service apps
+- Notification listener apps
+- Overlay (draw over apps) apps
+- Usage access apps
+- Battery optimization whitelist
+- Background-restricted apps
+- App uninstall / app info shortcut
+- App backup / APK share
+- Bloatware list
+- Recently installed / updated apps
+- Play Store / App Store link
+- App tracker / SDK detector (ads, analytics)
+- Package verification status
+- Sideloaded app detector
+- Dual app / work profile apps
+- Instant apps
+- App launch time
+
+**System, processes & logs**
+- Running processes (PID, name, CPU, memory)
+- Services list
+- Threads list
+- System properties (build.prop, getprop)
+- Environment variables
+- /proc and /sys viewer (cpuinfo, meminfo, version)
+- Kernel modules
+- System logs (logcat viewer, filter, export)
+- Crash logs / ANR logs
+- Boot log (dmesg)
+- Bug report generator
+- Device features list (PackageManager features)
+- System libraries list
+- Shared libraries per app
+- Content providers list
+- Intent / activity launcher
+- Settings viewer (system, secure, global)
+- Hidden menus / secret codes (dialer codes, engineering mode)
+- Service menu shortcuts
+- Boot mode / recovery info
+- Scheduled jobs / alarms list
+- WorkManager jobs
+- Broadcast receivers
+- File system explorer (read-only)
+- Mounts / partitions viewer
+- Disk I/O stats
+- SELinux policy status
+- System UI tuner
+- Hidden settings shortcuts
+- Power menu info
+
+**Performance & benchmarks**
+- CPU benchmark (single-core, multi-core)
+- GPU benchmark (2D, 3D, Vulkan)
+- RAM benchmark
+- Storage benchmark
+- Network benchmark
+- Display benchmark (frame rate, jank)
+- AI / NPU benchmark
+- Web / browser benchmark
+- Overall performance score
+- Stress test (CPU, GPU, RAM)
+- Thermal throttling test
+- Throttle detection
+- Stability test
+- Sustained performance test
+- Benchmark history
+- Leaderboard / compare with other devices
+- Gaming performance estimate
+- FPS counter overlay
+- Performance mode status
+- Game mode status
+- Boot time
+- App launch speed
+- Reaction / latency test
+- Fake benchmark detection
+- Hardware authenticity check (fake RAM / storage detection)
+- Fake device spec detector
+- Counterfeit phone checker
+
+**Thermal & power**
+- Temperature sensors (CPU, GPU, battery, skin, modem, charger, NPU)
+- Thermal zones
+- Thermal state / throttling status
+- Cooling devices status
+- Fan speed (laptops, desktops, gaming phones)
+- Heat map
+- Temperature history graph
+- Overheat alert
+- Cool-down helper
+- Power consumption (per component)
+- Power profile (mAh per component)
+- Energy usage estimate
+- Thermal throttling log
+
+**AI & NPU**
+- NPU / DSP / TPU info
+- NNAPI version / supported ops
+- On-device AI support
+- TensorFlow Lite delegates
+- Core ML / Neural Engine support
+- AI benchmark
+- ML Kit / on-device model status
+
+**Security & privacy**
+- Root / jailbreak detection
+- Bootloader status
+- Verified boot
+- Encryption status
+- Screen lock type
+- Biometric hardware (fingerprint, face, iris)
+- Biometric strength (class 1, 2, 3)
+- Trusted execution environment (TEE)
+- Hardware-backed keystore / StrongBox
+- Secure element
+- Play Integrity / SafetyNet check
+- Key attestation
+- Security patch age warning
+- Known vulnerabilities for OS version
+- CVE lookup by patch level
+- Unknown sources status
+- Device admin apps
+- Malware indicators
+- Spyware / stalkerware detector
+- Hidden app detector
+- Suspicious permissions detector
+- Camera / mic usage indicator
+- Clipboard access log
+- Permission usage timeline
+- Privacy dashboard
+- Tracker detector (AirTag, Tile, unknown BLE trackers)
+- Hidden camera finder
+- Hidden microphone / bug detector
+- Wi-Fi security audit
+- Open ports audit
+- VPN leak test (IP, DNS, WebRTC)
+- DNS leak test
+- Fingerprint exposure test (browser / device fingerprint)
+- Advertising ID reset
+- Lost-device info (IMEI backup, find my device status)
+- IMEI validity check
+- IMEI blacklist check
+- Stolen device check
+- SIM lock / network lock status
+- Carrier lock check
+- Activation lock status
+- MDM / enterprise management status
+- Screen overlay detection
+- Developer mode detection
+- Emulator detection
+- Debugger detection
+- Hooking framework detection (Xposed, Frida, Magisk)
+- Tamper detection
+- Device risk score
+
+**Hardware tests (diagnostics)**
+- Full diagnostic (one-tap test all)
+- Display test (dead pixels, colors, touch)
+- Touch test
+- Multi-touch test
+- Camera test (front, rear, flash, autofocus, video)
+- Flash / torch test
+- Speaker test
+- Earpiece test
+- Microphone test
+- Headphone jack test
+- Vibration test
+- Proximity sensor test
+- Light sensor test
+- Accelerometer test
+- Gyroscope test
+- Compass test
+- Barometer test
+- GPS test
+- Wi-Fi test
+- Bluetooth test
+- NFC test
+- Cellular / SIM test
+- Charging port test
+- Battery test
+- Fingerprint test
+- Face unlock test
+- Button test (volume, power)
+- SD card test
+- Storage test
+- RAM test
+- CPU test
+- Fan test
+- Water damage indicator checker
+- Used / refurbished phone checker
+- Pre-purchase checklist
+- Test report (pass / fail per component)
+- Test report share
+- Quick-test shortcuts (per component)
+
+**Monitoring & overlays**
+- Floating overlay (CPU, RAM, FPS, temp, battery, network speed)
+- Status bar indicators (network speed, temp, RAM)
+- Persistent notification monitor
+- Customizable overlay (items, size, position, transparency)
+- Game overlay
+- Live graphs (CPU, RAM, network, battery, temp)
+- Long-term monitoring (background logging)
+- Logging to file (CSV)
+- Session recorder
+- Threshold alerts (temp, battery, RAM, storage, signal)
+- Scheduled reports
+- Daily / weekly summary
+- Resource hog finder
+- Real-time process monitor
+- Per-app resource monitor
+
+**Web & browser device info (for web version)**
+- Browser name / version
+- User agent string
+- Rendering engine
+- OS / platform (via client hints)
+- Screen resolution / available resolution
+- Viewport size
+- Device pixel ratio
+- Color depth
+- Orientation
+- Touch support / max touch points
+- Hardware concurrency (logical cores)
+- Device memory
+- Connection type (effective type, downlink, RTT, save-data)
+- Language(s)
+- Time zone
+- Cookies / local storage status
+- Do Not Track / Global Privacy Control
+- Online / offline status
+- Battery status API
+- Media devices (cameras, mics, speakers)
+- WebGL / WebGL2 / WebGPU info
+- WebRTC local IP
+- Supported media formats (video, audio, image)
+- Supported browser features (feature matrix)
+- Plugins / MIME types
+- Installed fonts detection
+- Canvas / audio fingerprint
+- Permissions status (camera, mic, location, notifications)
+- Storage quota
+- Clipboard support
+- Gamepad API
+- Vibration API
+- Sensors API (accelerometer, gyroscope, orientation)
+- Geolocation
+- Ad-blocker detection
+- Private mode detection
+- Browser performance (JS benchmark)
+- Cookie / tracking test
+- PWA install status
+- Service worker status
+
+**Desktop / laptop-specific**
+- Motherboard (manufacturer, model, chipset, BIOS / UEFI version, date)
+- Secure Boot / TPM status
+- CPU details (sockets, cores, threads, cache, microcode)
+- RAM slots (used, free, type, speed, XMP / EXPO, manufacturer, part number)
+- GPU (integrated, dedicated, VRAM, driver, CUDA / ROCm)
+- Drives (model, serial, firmware, interface, SMART, temperature, health)
+- Optical drives
+- Display / monitor info (EDID, model, size, refresh rate, HDR, ports)
+- Peripherals (keyboard, mouse, webcam, printer, scanner)
+- Audio devices
+- Network adapters
+- Battery report (laptops)
+- Power plan
+- Fan / voltage / temperature sensors
+- BIOS settings viewer
+- Windows / macOS / Linux version
+- Product key / license status
+- Installed software list
+- Installed drivers list
+- Driver update checker
+- Startup programs
+- Services
+- Scheduled tasks
+- Event logs
+- Windows updates / hotfixes
+- System restore points
+- Environment variables
+- Users / groups
+- Hostname / domain
+- Virtual machine / hypervisor detection
+- Docker / WSL status
+- Port / USB device tree
+- PCI devices list
+- Thunderbolt / USB4 devices
+- Printer / queue info
+- Bluetooth adapters
+- Time sync (NTP)
+- Disk partitions / RAID info
+- Remote access status (RDP, SSH)
+
+**Wearables, TV & other devices**
+- Smartwatch info (model, OS, battery, sensors, paired phone)
+- Smart TV info (model, OS, resolution, HDR, apps)
+- Tablet / foldable specs
+- Car infotainment info (Android Auto, CarPlay)
+- VR headset info
+- Console / handheld info
+- E-reader info
+- Smart home hub info
+- Router info
+- Printer info
+- Cross-device info (paired devices, same account)
+
+**Info, references & learning**
+- Glossary (SoC, ABI, PPI, nm, UFS, LPDDR)
+- Spec explainers ("what does this mean")
+- Good / average / poor rating per spec
+- Upgrade advice
+- Compatibility checker (can this device run app / game X)
+- Game compatibility checker
+- OS update eligibility
+- Resale value estimator
+- Device age / lifespan estimator
+- Cleaning / maintenance tips
+- Battery care tips
+- Performance tips
+- Security tips
+- Troubleshooting guide
+- Known issues for this model
+- Recall / defect alerts
+- Firmware / driver update links
+- Official support links
+- Teardown / repairability score
+- Repair guide links
+- Spare part info
+
+**Widgets & shortcuts**
+- Home screen widgets (battery, RAM, storage, CPU, temp, network, uptime)
+- Lock screen widgets
+- Notification tiles
+- Quick settings tiles
+- App shortcuts (long-press)
+- Always-on display info
+- Wear OS / watch complication
+- Shortcut to system settings (battery, display, storage, Wi-Fi, developer, accessibility)
+- Voice commands
+- Automation triggers (Tasker, Shortcuts, IFTTT)
+
+**Customization**
+- Dark mode
+- Themes / accent colors
+- Font size
+- Unit preferences (°C / °F, MB / MiB, metric / imperial)
+- Refresh interval
+- Layout (list, grid, compact)
+- Reorder / hide sections
+- Home screen customization
+- Graph style
+- Language (multi-language UI)
+- Accessibility (screen reader, high contrast)
+- Haptic feedback
+- Keep screen on
+- Privacy mode (hide identifiers)
+- Mask serial / IMEI on share
+- Landscape / tablet layout
+
+**Platform & integration**
+- Cross-platform (Android, iOS, Windows, macOS, Linux, web)
+- Companion desktop app
+- Cloud sync
+- Account / profile
+- Multi-device dashboard (see all your devices)
+- Remote device info (view another device)
+- Team / IT admin dashboard (fleet inventory)
+- MDM integration
+- Public API
+- Webhooks
+- Command-line access
+- Plugin system
+- Export to Google Sheets / Excel
+- Asset tag / QR label generator
+- Barcode inventory scan
+
+**One thing to know:** what you can read depends heavily on the platform. iOS exposes far less than Android (no IMEI, serial, MAC, installed app list, or detailed per-app stats), and newer Android versions restrict IMEI, serial, MAC, installed apps, and background location behind special permissions or system-app status. Web apps are limited to what browser APIs expose. Because device identifiers are sensitive, request permissions only when a specific tool needs them, mask IDs by default when sharing, and avoid sending any of it off-device without clear consent (Play Store policy and GDPR both care about this).
+
+I can help you pick an MVP feature set or a tech stack if you'd like.
