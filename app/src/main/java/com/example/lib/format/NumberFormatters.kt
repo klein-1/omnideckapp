@@ -2,6 +2,7 @@ package com.example.lib.format
 
 import com.example.design.RegionFormat
 import java.text.DecimalFormat
+import java.util.Locale
 import kotlin.math.abs
 
 object NumberFormatters {
@@ -41,8 +42,8 @@ object NumberFormatters {
         if (bytes <= 0L) return "0 B"
         if (bytes < 1024L) return "$bytes B"
         val kb = bytes / 1024.0
-        if (kb < 1024.0) return String.format("%.1f KB", kb)
+        if (kb < 1024.0) return String.format(Locale.US, "%.1f KB", kb)
         val mb = kb / 1024.0
-        return String.format("%.2f MB", mb)
+        return String.format(Locale.US, "%.2f MB", mb)
     }
 }

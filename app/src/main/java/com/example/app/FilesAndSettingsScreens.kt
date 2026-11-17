@@ -107,7 +107,7 @@ fun FilesAndLedgerScreen(
             modifier = Modifier
                 .widthIn(max = 860.dp)
                 .fillMaxSize(),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 92.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             item {
@@ -315,7 +315,7 @@ fun SettingsAndYouScreen(
             modifier = Modifier
                 .widthIn(max = 860.dp)
                 .fillMaxSize(),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp),
+            contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 14.dp, bottom = 92.dp),
             verticalArrangement = Arrangement.spacedBy(14.dp)
         ) {
             item {
@@ -586,7 +586,7 @@ private fun ThemeSwatchCard(
             .clip(RoundedCornerShape(14.dp))
             .background(preview.paper)
             .border(
-                width = if (selected) 2.dp else 1.dp,
+                width = if (selected) 1.6.dp else 0.8.dp,
                 color = if (selected) activePalette.accentColor else activePalette.hairline,
                 shape = RoundedCornerShape(14.dp)
             )

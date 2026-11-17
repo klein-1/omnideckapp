@@ -7,6 +7,7 @@ import android.hardware.Sensor
 import android.hardware.SensorEvent
 import android.hardware.SensorEventListener
 import android.hardware.SensorManager
+import androidx.core.content.edit
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -525,7 +526,7 @@ fun MeasureBasicScreen(
 
                         PixelSteppedSlider("DPI Calibration Trim", dpiScalePct, 65..135, 1, "%", hue, { pct ->
                             dpiScalePct = pct
-                            prefs.edit().putInt("ruler_cal_pct", pct).apply()
+                            prefs.edit { putInt("ruler_cal_pct", pct) }
                         })
                         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                             PixelButton(
@@ -539,7 +540,7 @@ fun MeasureBasicScreen(
                                         val neededEffectiveDpi = (spanPx * 25.4f) / 85.6f
                                         val newPct = ((neededEffectiveDpi / baseDpi) * 100f).toInt().coerceIn(65, 135)
                                         dpiScalePct = newPct
-                                        prefs.edit().putInt("ruler_cal_pct", newPct).apply()
+                                        prefs.edit { putInt("ruler_cal_pct", newPct) }
                                         onStatusToast("Calibrated ruler to $newPct% using 85.6mm reference.")
                                     }
                                 }

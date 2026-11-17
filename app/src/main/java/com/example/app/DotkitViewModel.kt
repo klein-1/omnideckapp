@@ -245,6 +245,11 @@ class DotkitViewModel(application: Application) : AndroidViewModel(application) 
         )
     }
 
+    fun toggleLightDarkQuick() {
+        val currentlyDark = _lookState.value.palette.isDark
+        updateThemeMode(if (currentlyDark) ThemeMode.PAPER else ThemeMode.INK)
+    }
+
     fun updateMotionMode(mode: MotionMode) {
         repo.setMotionMode(mode)
         _lookState.value = _lookState.value.copy(motionMode = mode)

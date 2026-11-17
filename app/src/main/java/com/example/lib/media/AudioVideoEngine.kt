@@ -7,6 +7,7 @@ import android.media.MediaFormat
 import android.media.MediaMetadataRetriever
 import android.media.MediaMuxer
 import android.net.Uri
+import android.os.Build
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
@@ -90,7 +91,17 @@ object AudioVideoEngine {
                 val pts = extractor.sampleTime
                 if (pts > endUs) break
                 info.presentationTimeUs = (pts - startMs * 1000L).coerceAtLeast(0L)
-                info.flags = extractor.sampleFlags
+                val sFlags = extractor.sampleFlags
+                var bufFlags = 0
+                if ((sFlags and MediaExtractor.SAMPLE_FLAG_SYNC) != 0) {
+                    bufFlags = bufFlags or MediaCodec.BUFFER_FLAG_KEY_FRAME
+                }
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O &&
+                    (sFlags and MediaExtractor.SAMPLE_FLAG_PARTIAL_FRAME) != 0
+                ) {
+                    bufFlags = bufFlags or MediaCodec.BUFFER_FLAG_PARTIAL_FRAME
+                }
+                info.flags = bufFlags
                 val srcTrack = extractor.sampleTrackIndex
                 val dstTrack = trackMap[srcTrack]
                 if (dstTrack != null) {

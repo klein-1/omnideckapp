@@ -1,7 +1,6 @@
 package com.example.design
 
 import androidx.compose.animation.AnimatedContent
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.Spring
@@ -10,7 +9,6 @@ import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
-import androidx.compose.animation.scaleIn
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.animation.togetherWith
@@ -32,20 +30,25 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.nestedscroll.NestedScrollConnection
+import androidx.compose.ui.input.nestedscroll.NestedScrollSource
 import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.Velocity
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlin.math.abs
 import kotlin.math.roundToInt
 
 /**
@@ -54,14 +57,14 @@ import kotlin.math.roundToInt
 @Composable
 fun Modifier.springPressScale(
     interactionSource: MutableInteractionSource,
-    pressedScale: Float = 0.97f
+    pressedScale: Float = 0.965f
 ): Modifier {
     val look = LocalDotkitLook.current
     val isPressed by interactionSource.collectIsPressedAsState()
     val scale by animateFloatAsState(
         targetValue = if (isPressed && look.motionMode != MotionMode.OFF) pressedScale else 1f,
         animationSpec = spring(
-            dampingRatio = Spring.DampingRatioMediumBouncy,
+            dampingRatio = 0.65f,
             stiffness = Spring.StiffnessMedium
         ),
         label = "press_scale"
@@ -73,7 +76,81 @@ fun Modifier.springPressScale(
 }
 
 /**
- * Staggered entrance wrapper for lists and bento cards.
+ * 120Hz Scroll-velocity coupled motion state.
+ * Tracks live scroll deltas 1:1 with user gesture & springs back cleanly to rest when idle,
+ * with ZERO layout stall or height collapsing when scrolling either direction.
+ */
+@Stable
+class ScrollVelocityState(
+    private val enabled: Boolean
+) {
+    internal var targetImpulse by mutableFloatStateOf(0f)
+    internal var lastEventNanos = 0L
+
+    val nestedScrollConnection = object : NestedScrollConnection {
+        override fun onPreScroll(available: Offset, source: NestedScrollSource): Offset {
+            if (enabled && abs(available.y) > 0.5f) {
+                val clamped = (available.y / 55f).coerceIn(-1f, 1f)
+                targetImpulse = (targetImpulse * 0.4f + clamped * 0.6f).coerceIn(-1f, 1f)
+                lastEventNanos = System.nanoTime()
+            }
+            return Offset.Zero
+        }
+
+        override suspend fun onPostFling(consumed: Velocity, available: Velocity): Velocity {
+            if (enabled) {
+                targetImpulse = 0f
+            }
+            return Velocity.Zero
+        }
+    }
+}
+
+@Composable
+fun rememberScrollVelocityConnection(): ScrollVelocityState {
+    val look = LocalDotkitLook.current
+    val enabled = look.motionMode != MotionMode.OFF
+    val state = remember(enabled) { ScrollVelocityState(enabled) }
+    LaunchedEffect(state.lastEventNanos, enabled) {
+        if (enabled && state.targetImpulse != 0f) {
+            kotlinx.coroutines.delay(48L)
+            state.targetImpulse = 0f
+        }
+    }
+    return state
+}
+
+@Composable
+fun ScrollVelocityState.collectSmoothedVelocity(): Float {
+    val look = LocalDotkitLook.current
+    val anim by animateFloatAsState(
+        targetValue = if (look.motionMode == MotionMode.OFF) 0f else targetImpulse,
+        animationSpec = spring(
+            dampingRatio = 0.78f,
+            stiffness = Spring.StiffnessMediumLow
+        ),
+        label = "scroll_vel"
+    )
+    return anim
+}
+
+/**
+ * Pure GPU-layer micro-parallax / settle reaction proportional to scroll speed.
+ * Never collapses layout bounds or waits for timers, so upward scrolling stays 1:1 instantaneous.
+ */
+fun Modifier.scrollReactiveItem(velocityFactor: Float): Modifier {
+    val mag = abs(velocityFactor).coerceIn(0f, 1f)
+    if (mag < 0.015f) return this
+    return this.graphicsLayer {
+        val microScale = 1f - (mag * 0.012f)
+        scaleX = microScale
+        scaleY = microScale
+        translationY = velocityFactor * 5.dp.toPx()
+    }
+}
+
+/**
+ * Zero-delay pass-through retained for compatibility; never stalls scroll with AnimatedVisibility.
  */
 @Composable
 fun StaggeredEntrance(
@@ -81,29 +158,7 @@ fun StaggeredEntrance(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit
 ) {
-    val look = LocalDotkitLook.current
-    if (look.motionMode == MotionMode.OFF) {
-        Box(modifier = modifier) { content() }
-        return
-    }
-    var visible by remember { mutableStateOf(false) }
-    LaunchedEffect(Unit) {
-        val delayMs = (index.coerceAtMost(8) * 26L)
-        if (delayMs > 0L) delay(delayMs)
-        visible = true
-    }
-    AnimatedVisibility(
-        visible = visible,
-        modifier = modifier,
-        enter = fadeIn(tween(220)) +
-            slideInVertically(
-                animationSpec = spring(dampingRatio = 0.82f, stiffness = Spring.StiffnessMediumLow),
-                initialOffsetY = { it / 8 }
-            ) +
-            scaleIn(initialScale = 0.97f, animationSpec = tween(200))
-    ) {
-        content()
-    }
+    Box(modifier = modifier) { content() }
 }
 
 @Composable

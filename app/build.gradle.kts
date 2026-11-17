@@ -106,6 +106,7 @@ dependencies {
   implementation(libs.androidx.room.ktx)
   implementation(libs.androidx.room.runtime)
   implementation(libs.androidx.documentfile)
+  implementation(libs.androidx.exifinterface)
   implementation(libs.coil.compose)
   implementation(libs.zxing.core)
   implementation(libs.converter.moshi)

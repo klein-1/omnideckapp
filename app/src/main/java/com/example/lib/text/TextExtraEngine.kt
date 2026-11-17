@@ -1,5 +1,6 @@
 package com.example.lib.text
 
+import com.example.lib.crypto.PureBase64
 import org.json.JSONArray
 import org.json.JSONObject
 import java.net.IDN
@@ -10,7 +11,6 @@ import java.security.PublicKey
 import java.security.SecureRandom
 import java.security.Signature
 import java.security.spec.ECGenParameterSpec
-import java.util.Base64
 import java.util.UUID
 import kotlin.math.log2
 
@@ -340,7 +340,7 @@ object TextExtraEngine {
 
     // ==================== 7. ASYMMETRIC KEYS & SIGNATURES ====================
     private fun pemWrap(label: String, bytes: ByteArray): String {
-        val b64 = Base64.getEncoder().encodeToString(bytes).chunked(64).joinToString("\n")
+        val b64 = PureBase64.encode(bytes).chunked(64).joinToString("\n")
         return "-----BEGIN $label-----\n$b64\n-----END $label-----"
     }
 
@@ -365,12 +365,12 @@ object TextExtraEngine {
         val sig = Signature.getInstance(if (isEc) "SHA256withECDSA" else "SHA256withRSA")
         sig.initSign(privateKey, rng)
         sig.update(message.toByteArray(Charsets.UTF_8))
-        return Base64.getEncoder().encodeToString(sig.sign())
+        return PureBase64.encode(sig.sign())
     }
 
     fun verifyPayload(message: String, sigBase64: String, publicKey: PublicKey, isEc: Boolean): Boolean =
         runCatching {
-            val sigBytes = Base64.getDecoder().decode(sigBase64.trim())
+            val sigBytes = PureBase64.decode(sigBase64.trim())
             val sig = Signature.getInstance(if (isEc) "SHA256withECDSA" else "SHA256withRSA")
             sig.initVerify(publicKey)
             sig.update(message.toByteArray(Charsets.UTF_8))

@@ -1,8 +1,11 @@
 package com.example.tools.image
 
 import android.graphics.Bitmap
-import android.media.ExifInterface
 import android.net.Uri
+import androidx.core.graphics.createBitmap
+import androidx.core.graphics.get
+import androidx.core.graphics.toColorInt
+import androidx.exifinterface.media.ExifInterface
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -306,14 +309,14 @@ fun ImageStudioExtrasScreen(
                                             val bmp = sourceBmp ?: return@detectTapGestures
                                             val px = ((offset.x / imgBoxSize.width.coerceAtLeast(1)) * bmp.width).toInt().coerceIn(0, bmp.width - 1)
                                             val py = ((offset.y / imgBoxSize.height.coerceAtLeast(1)) * bmp.height).toInt().coerceIn(0, bmp.height - 1)
-                                            val c = bmp.getPixel(px, py)
+                                            val c = bmp[px, py]
                                             val r = android.graphics.Color.red(c); val g = android.graphics.Color.green(c); val b = android.graphics.Color.blue(c)
                                             pickedHex = String.format("#%02X%02X%02X", r, g, b); pickedRgb = "RGB($r, $g, $b)"
                                         }
                                     }
                             )
                             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
-                                Box(Modifier.size(44.dp).clip(RoundedCornerShape(6.dp)).background(Color(android.graphics.Color.parseColor(pickedHex))).border(1.dp, palette.hairline, RoundedCornerShape(6.dp)))
+                                Box(Modifier.size(44.dp).clip(RoundedCornerShape(6.dp)).background(Color(pickedHex.toColorInt())).border(1.dp, palette.hairline, RoundedCornerShape(6.dp)))
                                 Column(Modifier.weight(1f)) {
                                     Text(pickedHex, style = DotkitType.monoData(16), color = palette.ink)
                                     Text(pickedRgb, style = DotkitType.monoLabel(11), color = palette.ink2)
@@ -445,7 +448,7 @@ fun ImageStudioExtrasScreen(
                             drawPts(activeStroke)
                         }
                         PixelButton(text = "Export Transparent Signature PNG", chapterHue = hue, enabled = sigStrokes.isNotEmpty(), onClick = {
-                            val bmp = Bitmap.createBitmap(900, 420, Bitmap.Config.ARGB_8888)
+                            val bmp = createBitmap(900, 420)
                             val c = android.graphics.Canvas(bmp)
                             val p = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
                                 color = if (sigColorBlack) 0xFF141413.toInt() else 0xFF0052FF.toInt()

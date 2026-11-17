@@ -3,6 +3,10 @@ package com.example.app
 import android.content.ClipboardManager
 import android.content.Context
 import androidx.compose.animation.AnimatedContent
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -30,13 +34,18 @@ import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.rounded.ArrowBack
 import androidx.compose.material.icons.automirrored.rounded.KeyboardArrowRight
 import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.ContentPaste
+import androidx.compose.material.icons.rounded.DarkMode
+import androidx.compose.material.icons.rounded.LightMode
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Star
 import androidx.compose.material3.Icon
@@ -44,11 +53,16 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.Role
@@ -64,18 +78,100 @@ import com.example.design.PixelButtonVariant
 import com.example.design.PixelChip
 import com.example.design.PixelStamp
 import com.example.design.PixelTextField
-import com.example.design.StaggeredEntrance
 import com.example.design.SwissCardShape
 import com.example.design.ToolBadgeIcon
 import com.example.design.ToolCategory
 import com.example.design.ToolIconResolver
 import com.example.design.ToolStateBanner
 import com.example.design.ToolStateKind
+import com.example.design.collectSmoothedVelocity
+import com.example.design.rememberScrollVelocityConnection
+import com.example.design.scrollReactiveItem
 import com.example.design.springPressScale
 import com.example.lib.command.CommandEngine
 import com.example.registry.ToolMeta
 import com.example.registry.ToolRegistry
 import com.example.tools.common.copyToClipboard
+import kotlinx.coroutines.launch
+
+private sealed class HomePagerTab(val id: String, val label: String, val hue: ChapterHue) {
+    data object All : HomePagerTab("all", "All", ChapterHue.COBALT)
+    data object Suites : HomePagerTab("suites", "Suites", ChapterHue.VERMILION)
+    data class Category(val cat: ToolCategory) : HomePagerTab(cat.id, cat.label, cat.hue)
+}
+
+private val HOME_TABS: List<HomePagerTab> = buildList {
+    add(HomePagerTab.All)
+    add(HomePagerTab.Category(ToolCategory.AI))
+    add(HomePagerTab.Suites)
+    val priorityOrder = listOf(
+        ToolCategory.DEV,
+        ToolCategory.IMAGE,
+        ToolCategory.PDF,
+        ToolCategory.FINANCE,
+        ToolCategory.CALC,
+        ToolCategory.MEDIA,
+        ToolCategory.DOWNLOAD,
+        ToolCategory.URL,
+        ToolCategory.SERVER,
+        ToolCategory.TIME,
+        ToolCategory.TEXT,
+        ToolCategory.ESSENTIALS,
+        ToolCategory.HEALTH,
+        ToolCategory.GAMES,
+        ToolCategory.BENCHMARK,
+        ToolCategory.SOCIAL,
+        ToolCategory.DEVICE,
+        ToolCategory.MEASURE,
+        ToolCategory.COMMON
+    )
+    priorityOrder.forEach { add(HomePagerTab.Category(it)) }
+}
+
+@Composable
+fun ThemeQuickToggleButton(
+    isDark: Boolean,
+    onToggle: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val look = LocalDotkitLook.current
+    val palette = look.palette
+    val interactionSource = remember { MutableInteractionSource() }
+    val rotation by animateFloatAsState(
+        targetValue = if (isDark) 0f else 180f,
+        animationSpec = if (look.motionMode == MotionMode.OFF) tween(0) else spring(
+            dampingRatio = 0.7f,
+            stiffness = Spring.StiffnessMediumLow
+        ),
+        label = "theme_toggle_rot"
+    )
+    Box(
+        modifier = modifier
+            .springPressScale(interactionSource, 0.90f)
+            .minimumInteractiveComponentSize()
+            .size(42.dp)
+            .clip(CircleShape)
+            .background(palette.paper2)
+            .border(0.8.dp, palette.hairline, CircleShape)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = androidx.compose.material3.ripple(bounded = true),
+                role = Role.Button,
+                onClick = onToggle
+            )
+            .testTag("quick_theme_toggle"),
+        contentAlignment = Alignment.Center
+    ) {
+        Icon(
+            imageVector = if (isDark) Icons.Rounded.LightMode else Icons.Rounded.DarkMode,
+            contentDescription = if (isDark) "Switch to Light theme" else "Switch to Obsidian Dark theme",
+            tint = palette.ink,
+            modifier = Modifier
+                .size(19.dp)
+                .graphicsLayer { rotationZ = rotation }
+        )
+    }
+}
 
 @Composable
 fun TopSearchAndSolverBar(
@@ -102,7 +198,7 @@ fun TopSearchAndSolverBar(
                 .fillMaxWidth()
                 .clip(RoundedCornerShape(16.dp))
                 .background(palette.paper2)
-                .border(1.dp, palette.hairline.copy(alpha = 0.8f), RoundedCornerShape(16.dp))
+                .border(0.8.dp, palette.hairline, RoundedCornerShape(16.dp))
                 .padding(horizontal = 12.dp, vertical = 2.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(6.dp)
@@ -111,15 +207,15 @@ fun TopSearchAndSolverBar(
                 imageVector = Icons.Rounded.Search,
                 contentDescription = "Search",
                 tint = palette.accentColor,
-                modifier = Modifier.size(20.dp)
+                modifier = Modifier.size(19.dp)
             )
             Box(modifier = Modifier.weight(1f)) {
                 PixelTextField(
                     value = query,
                     onValueChange = onQueryChange,
-                    placeholder = "Search ${ToolRegistry.ALL_TOOLS.size} tools, keywords (pdf, tuner, fast, c4)…",
+                    placeholder = "Search ${ToolRegistry.ALL_TOOLS.size} tools or type math (18% of 2400)…",
                     chapterHue = look.accentHue,
-                    minHeight = 44.dp,
+                    minHeight = 42.dp,
                     tag = "top_search_input"
                 )
             }
@@ -210,11 +306,13 @@ fun HomeScreen(
     onOpenTool: (toolId: String, payload: String) -> Unit,
     onBrowseCategory: (ToolCategory) -> Unit,
     onOpenToolsDirectory: () -> Unit,
+    onToggleLightDark: () -> Unit,
     onToast: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
     val look = LocalDotkitLook.current
     val palette = look.palette
+    val scope = rememberCoroutineScope()
 
     val recentTools = remember(recentToolIds) {
         recentToolIds.mapNotNull { ToolRegistry.getToolById(it) }
@@ -224,6 +322,7 @@ fun HomeScreen(
     }
     val flagshipSuites = remember {
         listOfNotNull(
+            ToolRegistry.getToolById("ai-writer"),
             ToolRegistry.getToolById("dl-video"),
             ToolRegistry.getToolById("dl-music"),
             ToolRegistry.getToolById("url-safety"),
@@ -237,6 +336,17 @@ fun HomeScreen(
         else ToolRegistry.searchTools(searchQuery, ToolCategory.ALL)
     }
 
+    val pagerState = rememberPagerState(initialPage = 0) { HOME_TABS.size }
+    val tabRowState = rememberLazyListState()
+
+    LaunchedEffect(pagerState.currentPage) {
+        if (searchQuery.isBlank()) {
+            tabRowState.animateScrollToItem(
+                index = (pagerState.currentPage - 1).coerceAtLeast(0)
+            )
+        }
+    }
+
     BoxWithConstraints(
         modifier = modifier
             .fillMaxSize()
@@ -244,177 +354,408 @@ fun HomeScreen(
         contentAlignment = Alignment.TopCenter
     ) {
         val columns = if (maxWidth >= 600.dp) 2 else 1
-        LazyColumn(
+
+        Column(
             modifier = Modifier
-                .widthIn(max = 940.dp)
-                .fillMaxSize(),
-            contentPadding = PaddingValues(horizontal = 16.dp, vertical = 14.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .widthIn(max = 960.dp)
+                .fillMaxSize()
         ) {
-            item {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .clip(RoundedCornerShape(18.dp))
-                        .background(
-                            Brush.horizontalGradient(
-                                listOf(
-                                    palette.accentColor.copy(alpha = 0.12f),
-                                    palette.paper2
-                                )
-                            )
-                        )
-                        .border(1.dp, palette.accentColor.copy(alpha = 0.22f), RoundedCornerShape(18.dp))
-                        .padding(horizontal = 18.dp, vertical = 16.dp)
+            // Ultra-minimal Top Bar (Brand + Live Tool Count + Light/Dark Switch)
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 16.dp, end = 16.dp, top = 12.dp, bottom = 10.dp),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     Text(
                         text = APP_NAME,
-                        style = DotkitType.displayPixel(28),
+                        style = DotkitType.displayPixel(24),
                         color = palette.ink
                     )
-                    Spacer(Modifier.height(4.dp))
-                    Text(
-                        text = "${ToolRegistry.ALL_TOOLS.size} active utilities across ${ToolCategory.entries.size - 1} categories",
-                        style = DotkitType.bodyUi(13),
-                        color = palette.ink2
-                    )
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(20.dp))
+                            .background(palette.accentColor.copy(alpha = 0.14f))
+                            .border(0.8.dp, palette.accentColor.copy(alpha = 0.25f), RoundedCornerShape(20.dp))
+                            .padding(horizontal = 8.dp, vertical = 3.dp)
+                    ) {
+                        Text(
+                            text = "${ToolRegistry.ALL_TOOLS.size}",
+                            style = DotkitType.monoLabel(10),
+                            color = palette.accentColor
+                        )
+                    }
                 }
-            }
-
-            item {
-                TopSearchAndSolverBar(
-                    query = searchQuery,
-                    onQueryChange = onSearchQueryChange,
-                    onOpenTool = onOpenTool,
-                    onToast = onToast
+                ThemeQuickToggleButton(
+                    isDark = palette.isDark,
+                    onToggle = onToggleLightDark
                 )
             }
 
+            // Minimal Search + Instant Solver Bar
+            TopSearchAndSolverBar(
+                query = searchQuery,
+                onQueryChange = onSearchQueryChange,
+                onOpenTool = onOpenTool,
+                onToast = onToast,
+                modifier = Modifier.padding(horizontal = 16.dp)
+            )
+
+            Spacer(Modifier.height(10.dp))
+
             if (searchQuery.isNotBlank()) {
-                item {
-                    Text(
-                        text = "SEARCH RESULTS (${searchMatches.size})",
-                        style = DotkitType.monoLabel(10),
-                        color = palette.ink2
-                    )
-                }
-                if (searchMatches.isEmpty()) {
+                val searchScrollVel = rememberScrollVelocityConnection()
+                val vel = searchScrollVel.collectSmoothedVelocity()
+                LazyColumn(
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                        .nestedScroll(searchScrollVel.nestedScrollConnection),
+                    contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 92.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
                     item {
-                        ToolStateBanner(
-                            kind = ToolStateKind.EMPTY,
-                            title = "No matching tools found",
-                            detail = "Try keywords like seal, shttps, pdf, tuner, c4, fasting, emi, torch, or math like sqrt(144) + sin(30).",
-                            chapterHue = look.accentHue,
-                            actionLabel = "Clear Search",
-                            onAction = { onSearchQueryChange("") }
+                        Text(
+                            text = "RESULTS (${searchMatches.size})",
+                            style = DotkitType.monoLabel(10),
+                            color = palette.ink2
                         )
                     }
-                } else {
-                    itemsIndexed(searchMatches.chunked(columns)) { idx, rowTools ->
-                        StaggeredEntrance(idx) {
-                            ToolRowPair(rowTools, columns, pinnedToolIds, onOpenTool)
+                    if (searchMatches.isEmpty()) {
+                        item {
+                            ToolStateBanner(
+                                kind = ToolStateKind.EMPTY,
+                                title = "No matching tools found",
+                                detail = "Try keywords like ai, diff, totp, svg, pdf, tuner, fasting, emi, or math like sqrt(144) + sin(30).",
+                                chapterHue = look.accentHue,
+                                actionLabel = "Clear Search",
+                                onAction = { onSearchQueryChange("") }
+                            )
+                        }
+                    } else {
+                        items(
+                            items = searchMatches.chunked(columns),
+                            key = { row -> "s_${row.joinToString("_") { it.id }}" }
+                        ) { rowTools ->
+                            ToolRowPair(
+                                tools = rowTools,
+                                columns = columns,
+                                pinnedToolIds = pinnedToolIds,
+                                onOpenTool = onOpenTool,
+                                modifier = Modifier.scrollReactiveItem(vel)
+                            )
                         }
                     }
                 }
             } else {
-                item {
-                    SectionHeaderRow(
-                        title = "RECENT TOOLS",
-                        actionLabel = "Categories →",
-                        onAction = onOpenToolsDirectory
-                    )
-                }
-                if (recentTools.isEmpty()) {
-                    item {
-                        PixelBox(backgroundColor = palette.paper2) {
-                            Text(
-                                text = "Tools you open appear here automatically for quick 1-tap relaunch.",
-                                style = DotkitType.bodyUi(13),
-                                color = palette.ink2
+                // Recent Tools Quick-Launch Pills
+                if (recentTools.isNotEmpty()) {
+                    LazyRow(
+                        contentPadding = PaddingValues(horizontal = 16.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.padding(bottom = 10.dp)
+                    ) {
+                        items(recentTools, key = { "recent_pill_${it.id}" }) { tool ->
+                            RecentToolPill(
+                                tool = tool,
+                                onClick = { onOpenTool(tool.id, "") }
                             )
                         }
                     }
-                } else {
-                    item {
-                        LazyRow(
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
-                        ) {
-                            items(recentTools, key = { "recent_${it.id}" }) { tool ->
-                                RecentToolTile(
-                                    tool = tool,
-                                    onClick = { onOpenTool(tool.id, "") }
-                                )
+                }
+
+                // Magnetic Spring Category Pill Strip synced to HorizontalPager
+                LazyRow(
+                    state = tabRowState,
+                    contentPadding = PaddingValues(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    modifier = Modifier.padding(bottom = 8.dp)
+                ) {
+                    items(HOME_TABS.size, key = { idx -> "htab_${HOME_TABS[idx].id}" }) { idx ->
+                        val tab = HOME_TABS[idx]
+                        val selected = pagerState.currentPage == idx
+                        HomeCategoryPill(
+                            label = tab.label,
+                            selected = selected,
+                            hue = tab.hue,
+                            onClick = {
+                                scope.launch {
+                                    if (look.motionMode == MotionMode.OFF) {
+                                        pagerState.scrollToPage(idx)
+                                    } else {
+                                        pagerState.animateScrollToPage(
+                                            page = idx,
+                                            animationSpec = spring(
+                                                dampingRatio = 0.85f,
+                                                stiffness = Spring.StiffnessMediumLow
+                                            )
+                                        )
+                                    }
+                                }
+                            },
+                            modifier = Modifier.testTag("home_tab_${tab.id}")
+                        )
+                    }
+                }
+
+                // Swipeable HorizontalPager feeds (120Hz zero-delay scrolling in both directions)
+                HorizontalPager(
+                    state = pagerState,
+                    beyondViewportPageCount = 1,
+                    modifier = Modifier
+                        .weight(1f)
+                        .fillMaxWidth()
+                ) { pageIndex ->
+                    val tab = HOME_TABS[pageIndex]
+                    val pageScrollVel = rememberScrollVelocityConnection()
+                    val vel = pageScrollVel.collectSmoothedVelocity()
+
+                    when (tab) {
+                        HomePagerTab.All -> {
+                            val categories = remember { ToolCategory.entries.filter { it != ToolCategory.ALL } }
+                            LazyColumn(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .nestedScroll(pageScrollVel.nestedScrollConnection),
+                                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 92.dp),
+                                verticalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                if (pinnedTools.isNotEmpty()) {
+                                    item(key = "hdr_pinned") {
+                                        SectionHeaderRow(title = "PINNED")
+                                    }
+                                    items(
+                                        items = pinnedTools.chunked(columns),
+                                        key = { row -> "pin_${row.joinToString("_") { it.id }}" }
+                                    ) { rowTools ->
+                                        ToolRowPair(
+                                            tools = rowTools,
+                                            columns = columns,
+                                            pinnedToolIds = pinnedToolIds,
+                                            onOpenTool = onOpenTool,
+                                            modifier = Modifier.scrollReactiveItem(vel)
+                                        )
+                                    }
+                                }
+
+                                item(key = "hdr_suites") {
+                                    SectionHeaderRow(
+                                        title = "POWER SUITES & AI STUDIO",
+                                        actionLabel = "All ${ToolCategory.entries.size - 1} →",
+                                        onAction = onOpenToolsDirectory
+                                    )
+                                }
+                                items(
+                                    items = flagshipSuites.chunked(columns),
+                                    key = { row -> "flag_${row.joinToString("_") { it.id }}" }
+                                ) { rowTools ->
+                                    ToolRowPair(
+                                        tools = rowTools,
+                                        columns = columns,
+                                        pinnedToolIds = pinnedToolIds,
+                                        onOpenTool = onOpenTool,
+                                        modifier = Modifier.scrollReactiveItem(vel)
+                                    )
+                                }
+
+                                item(key = "hdr_cats") {
+                                    SectionHeaderRow(
+                                        title = "CATEGORIES (${categories.size})",
+                                        actionLabel = "Directory →",
+                                        onAction = onOpenToolsDirectory
+                                    )
+                                }
+                                items(
+                                    items = categories.chunked(columns),
+                                    key = { row -> "cat_${row.joinToString("_") { it.id }}" }
+                                ) { rowCats ->
+                                    Row(
+                                        modifier = Modifier
+                                            .fillMaxWidth()
+                                            .scrollReactiveItem(vel),
+                                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                    ) {
+                                        rowCats.forEach { cat ->
+                                            val count = remember(cat) { ToolRegistry.getToolsByCategory(cat).size }
+                                            CategoryTile(
+                                                category = cat,
+                                                count = count,
+                                                onClick = { onBrowseCategory(cat) },
+                                                modifier = Modifier.weight(1f)
+                                            )
+                                        }
+                                        if (rowCats.size < columns) {
+                                            Spacer(Modifier.weight(1f))
+                                        }
+                                    }
+                                }
                             }
                         }
-                    }
-                }
 
-                if (pinnedTools.isNotEmpty()) {
-                    item {
-                        SectionHeaderRow(title = "PINNED FAVORITES")
-                    }
-                    itemsIndexed(
-                        pinnedTools.chunked(columns),
-                        key = { _, row -> "pin_${row.joinToString { it.id }}" }
-                    ) { idx, rowTools ->
-                        StaggeredEntrance(idx) {
-                            ToolRowPair(rowTools, columns, pinnedToolIds, onOpenTool)
-                        }
-                    }
-                }
-
-                item {
-                    SectionHeaderRow(
-                        title = "FLAGSHIP SUITES",
-                        actionLabel = "Image & PDF →",
-                        onAction = { onBrowseCategory(ToolCategory.IMAGE) }
-                    )
-                }
-                itemsIndexed(
-                    flagshipSuites.chunked(columns),
-                    key = { _, row -> "flag_${row.joinToString { it.id }}" }
-                ) { idx, rowTools ->
-                    StaggeredEntrance(idx) {
-                        ToolRowPair(rowTools, columns, pinnedToolIds, onOpenTool)
-                    }
-                }
-
-                item {
-                    SectionHeaderRow(
-                        title = "BROWSE CATEGORIES (${ToolCategory.entries.size - 1})",
-                        actionLabel = "Open Grid →",
-                        onAction = onOpenToolsDirectory
-                    )
-                }
-                val categories = ToolCategory.entries.filter { it != ToolCategory.ALL }
-                itemsIndexed(
-                    categories.chunked(columns),
-                    key = { _, row -> "cat_${row.joinToString { it.id }}" }
-                ) { idx, rowCats ->
-                    StaggeredEntrance(idx) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.spacedBy(10.dp)
-                        ) {
-                            rowCats.forEach { cat ->
-                                val count = remember(cat) { ToolRegistry.getToolsByCategory(cat).size }
-                                CategoryTile(
-                                    category = cat,
-                                    count = count,
-                                    onClick = { onBrowseCategory(cat) },
-                                    modifier = Modifier.weight(1f)
-                                )
+                        HomePagerTab.Suites -> {
+                            LazyColumn(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .nestedScroll(pageScrollVel.nestedScrollConnection),
+                                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 92.dp),
+                                verticalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                item(key = "suites_intro") {
+                                    SectionHeaderRow(
+                                        title = "FLAGSHIP POWER SUITES",
+                                        actionLabel = "Full Directory →",
+                                        onAction = onOpenToolsDirectory
+                                    )
+                                }
+                                items(
+                                    items = flagshipSuites.chunked(columns),
+                                    key = { row -> "suite_${row.joinToString("_") { it.id }}" }
+                                ) { rowTools ->
+                                    ToolRowPair(
+                                        tools = rowTools,
+                                        columns = columns,
+                                        pinnedToolIds = pinnedToolIds,
+                                        onOpenTool = onOpenTool,
+                                        modifier = Modifier.scrollReactiveItem(vel)
+                                    )
+                                }
                             }
-                            if (rowCats.size < columns) {
-                                Spacer(Modifier.weight(1f))
+                        }
+
+                        is HomePagerTab.Category -> {
+                            val catTools = remember(tab.cat) { ToolRegistry.getToolsByCategory(tab.cat) }
+                            LazyColumn(
+                                modifier = Modifier
+                                    .fillMaxSize()
+                                    .nestedScroll(pageScrollVel.nestedScrollConnection),
+                                contentPadding = PaddingValues(start = 16.dp, end = 16.dp, top = 4.dp, bottom = 92.dp),
+                                verticalArrangement = Arrangement.spacedBy(10.dp)
+                            ) {
+                                item(key = "cat_hdr_${tab.cat.id}") {
+                                    SectionHeaderRow(
+                                        title = "${tab.cat.label.uppercase()} · ${catTools.size} TOOLS",
+                                        actionLabel = "Open Grid →",
+                                        onAction = { onBrowseCategory(tab.cat) }
+                                    )
+                                }
+                                items(
+                                    items = catTools.chunked(columns),
+                                    key = { row -> "pg_${tab.cat.id}_${row.joinToString("_") { it.id }}" }
+                                ) { rowTools ->
+                                    ToolRowPair(
+                                        tools = rowTools,
+                                        columns = columns,
+                                        pinnedToolIds = pinnedToolIds,
+                                        onOpenTool = onOpenTool,
+                                        modifier = Modifier.scrollReactiveItem(vel)
+                                    )
+                                }
                             }
                         }
                     }
                 }
             }
-
-            item { Spacer(Modifier.height(16.dp)) }
         }
+    }
+}
+
+@Composable
+private fun HomeCategoryPill(
+    label: String,
+    selected: Boolean,
+    hue: ChapterHue,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val look = LocalDotkitLook.current
+    val palette = look.palette
+    val accent = palette.chapterColor(hue)
+    val interactionSource = remember { MutableInteractionSource() }
+    val bg by animateColorAsState(
+        targetValue = if (selected) accent else palette.paper2,
+        animationSpec = tween(if (look.motionMode == MotionMode.OFF) 0 else 160),
+        label = "hpill_bg"
+    )
+    val fg by animateColorAsState(
+        targetValue = if (selected) hue.onColor else palette.ink2,
+        animationSpec = tween(if (look.motionMode == MotionMode.OFF) 0 else 160),
+        label = "hpill_fg"
+    )
+    val borderCol by animateColorAsState(
+        targetValue = if (selected) accent else palette.hairline,
+        animationSpec = tween(if (look.motionMode == MotionMode.OFF) 0 else 160),
+        label = "hpill_border"
+    )
+    val shape = RoundedCornerShape(22.dp)
+    Box(
+        modifier = modifier
+            .springPressScale(interactionSource, 0.94f)
+            .minimumInteractiveComponentSize()
+            .clip(shape)
+            .background(bg)
+            .border(0.8.dp, borderCol, shape)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = androidx.compose.material3.ripple(),
+                role = Role.Tab,
+                onClick = onClick
+            )
+            .padding(horizontal = 14.dp, vertical = 8.dp),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = label,
+            style = DotkitType.bodyUi(13, bold = selected),
+            color = fg,
+            maxLines = 1
+        )
+    }
+}
+
+@Composable
+private fun RecentToolPill(
+    tool: ToolMeta,
+    onClick: () -> Unit
+) {
+    val palette = LocalDotkitLook.current.palette
+    val accent = palette.chapterColor(tool.category.hue)
+    val interactionSource = remember { MutableInteractionSource() }
+    val shape = RoundedCornerShape(20.dp)
+    Row(
+        modifier = Modifier
+            .springPressScale(interactionSource, 0.94f)
+            .minimumInteractiveComponentSize()
+            .clip(shape)
+            .background(palette.paper2)
+            .border(0.8.dp, palette.hairline, shape)
+            .clickable(
+                interactionSource = interactionSource,
+                indication = androidx.compose.material3.ripple(),
+                role = Role.Button,
+                onClick = onClick
+            )
+            .testTag("recent_card_${tool.id}")
+            .padding(start = 6.dp, end = 12.dp, top = 6.dp, bottom = 6.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        ToolBadgeIcon(
+            meta = tool,
+            accentColor = accent,
+            sizeDp = 28.dp,
+            iconSizeDp = 15.dp
+        )
+        Text(
+            text = tool.name,
+            style = DotkitType.bodyUi(12, bold = true),
+            color = palette.ink,
+            maxLines = 1
+        )
     }
 }
 
@@ -426,6 +767,7 @@ fun ToolsDirectoryScreen(
     onSelectCategory: (ToolCategory?) -> Unit,
     pinnedToolIds: List<String>,
     onOpenTool: (toolId: String, payload: String) -> Unit,
+    onToggleLightDark: () -> Unit,
     onToast: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -449,12 +791,11 @@ fun ToolsDirectoryScreen(
 
         Column(
             modifier = Modifier
-                .widthIn(max = 940.dp)
+                .widthIn(max = 960.dp)
                 .fillMaxSize()
-                .padding(horizontal = 16.dp, vertical = 14.dp),
+                .padding(horizontal = 16.dp, vertical = 12.dp),
             verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Dynamic Header
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.CenterVertically,
@@ -473,7 +814,7 @@ fun ToolsDirectoryScreen(
                                 .minimumInteractiveComponentSize()
                                 .clip(RoundedCornerShape(12.dp))
                                 .background(palette.paper2)
-                                .border(1.dp, palette.hairline, RoundedCornerShape(12.dp))
+                                .border(0.8.dp, palette.hairline, RoundedCornerShape(12.dp))
                                 .clickable(interactionSource = backInteraction, indication = androidx.compose.material3.ripple()) {
                                     onSelectCategory(null)
                                 }
@@ -490,13 +831,13 @@ fun ToolsDirectoryScreen(
                         ToolBadgeIcon(
                             icon = ToolIconResolver.categoryIcon(selectedCategory),
                             accentColor = palette.chapterColor(selectedCategory.hue),
-                            sizeDp = 42.dp,
-                            iconSizeDp = 22.dp
+                            sizeDp = 40.dp,
+                            iconSizeDp = 21.dp
                         )
                         Column {
                             Text(
                                 text = selectedCategory.label,
-                                style = DotkitType.displayPixel(24),
+                                style = DotkitType.displayPixel(22),
                                 color = palette.ink
                             )
                             val cnt = ToolRegistry.getToolsByCategory(selectedCategory).size
@@ -507,26 +848,33 @@ fun ToolsDirectoryScreen(
                             )
                         }
                     }
+                    ThemeQuickToggleButton(isDark = palette.isDark, onToggle = onToggleLightDark)
                 } else {
                     Column(modifier = Modifier.weight(1f)) {
                         Text(
-                            text = if (searchQuery.isNotBlank()) "Search Tools" else "Categories",
-                            style = DotkitType.displayPixel(28),
+                            text = if (searchQuery.isNotBlank()) "Search Tools" else "Directory",
+                            style = DotkitType.displayPixel(24),
                             color = palette.ink
                         )
                         Text(
-                            text = if (searchQuery.isNotBlank()) "Matching across all modules"
-                            else "Choose a category to open its tools",
-                            style = DotkitType.bodyUi(13),
+                            text = if (searchQuery.isNotBlank()) "Matching across all ${ToolRegistry.ALL_TOOLS.size} modules"
+                            else "${ToolRegistry.ALL_TOOLS.size} tools in ${ToolCategory.entries.size - 1} categories",
+                            style = DotkitType.bodyUi(12),
                             color = palette.ink2
                         )
                     }
-                    if (selectedCategory == null && searchQuery.isBlank()) {
-                        PixelChip(
-                            label = "All (${ToolRegistry.ALL_TOOLS.size})",
-                            chapterHue = look.accentHue,
-                            onClick = { onSelectCategory(ToolCategory.ALL) }
-                        )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        if (selectedCategory == null && searchQuery.isBlank()) {
+                            PixelChip(
+                                label = "All (${ToolRegistry.ALL_TOOLS.size})",
+                                chapterHue = look.accentHue,
+                                onClick = { onSelectCategory(ToolCategory.ALL) }
+                            )
+                        }
+                        ThemeQuickToggleButton(isDark = palette.isDark, onToggle = onToggleLightDark)
                     }
                 }
             }
@@ -546,48 +894,53 @@ fun ToolsDirectoryScreen(
                     } else {
                         val enteringCat = targetState.startsWith("CATEGORY_") && initialState == "CATEGORIES"
                         if (enteringCat) {
-                            (fadeIn(tween(220)) + slideInHorizontally(tween(220)) { it / 6 })
-                                .togetherWith(fadeOut(tween(150)) + slideOutHorizontally(tween(150)) { -it / 10 })
+                            (fadeIn(tween(180)) + slideInHorizontally(tween(180)) { it / 8 })
+                                .togetherWith(fadeOut(tween(120)) + slideOutHorizontally(tween(120)) { -it / 12 })
                         } else {
-                            (fadeIn(tween(200)) + slideInHorizontally(tween(200)) { -it / 8 })
-                                .togetherWith(fadeOut(tween(150)) + slideOutHorizontally(tween(150)) { it / 8 })
+                            (fadeIn(tween(170)) + slideInHorizontally(tween(170)) { -it / 10 })
+                                .togetherWith(fadeOut(tween(120)) + slideOutHorizontally(tween(120)) { it / 10 })
                         }
                     }
                 },
                 modifier = Modifier.weight(1f),
                 label = "tools_category_switch"
             ) { mode ->
+                val scrollVel = rememberScrollVelocityConnection()
+                val vel = scrollVel.collectSmoothedVelocity()
+
                 when {
                     mode == "CATEGORIES" -> {
                         val categories = remember { ToolCategory.entries.filter { it != ToolCategory.ALL } }
                         LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .nestedScroll(scrollVel.nestedScrollConnection),
                             verticalArrangement = Arrangement.spacedBy(10.dp),
-                            contentPadding = PaddingValues(bottom = 18.dp)
+                            contentPadding = PaddingValues(bottom = 92.dp)
                         ) {
-                            itemsIndexed(
-                                categories.chunked(catColumns),
-                                key = { _, row -> "catgrid_${row.joinToString { it.id }}" }
-                            ) { idx, rowCats ->
-                                StaggeredEntrance(idx) {
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.spacedBy(10.dp)
-                                    ) {
-                                        rowCats.forEach { cat ->
-                                            val count = remember(cat) { ToolRegistry.getToolsByCategory(cat).size }
-                                            CategoryGridCard(
-                                                category = cat,
-                                                count = count,
-                                                onClick = { onSelectCategory(cat) },
-                                                modifier = Modifier
-                                                    .weight(1f)
-                                                    .testTag("cat_card_${cat.id}")
-                                            )
-                                        }
-                                        repeat(catColumns - rowCats.size) {
-                                            Spacer(Modifier.weight(1f))
-                                        }
+                            items(
+                                items = categories.chunked(catColumns),
+                                key = { row -> "catgrid_${row.joinToString("_") { it.id }}" }
+                            ) { rowCats ->
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .scrollReactiveItem(vel),
+                                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                                ) {
+                                    rowCats.forEach { cat ->
+                                        val count = remember(cat) { ToolRegistry.getToolsByCategory(cat).size }
+                                        CategoryGridCard(
+                                            category = cat,
+                                            count = count,
+                                            onClick = { onSelectCategory(cat) },
+                                            modifier = Modifier
+                                                .weight(1f)
+                                                .testTag("cat_card_${cat.id}")
+                                        )
+                                    }
+                                    repeat(catColumns - rowCats.size) {
+                                        Spacer(Modifier.weight(1f))
                                     }
                                 }
                             }
@@ -597,26 +950,35 @@ fun ToolsDirectoryScreen(
                     mode == "SEARCH" -> {
                         val matches = remember(searchQuery) { ToolRegistry.searchTools(searchQuery, ToolCategory.ALL) }
                         LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .nestedScroll(scrollVel.nestedScrollConnection),
                             verticalArrangement = Arrangement.spacedBy(10.dp),
-                            contentPadding = PaddingValues(bottom = 18.dp)
+                            contentPadding = PaddingValues(bottom = 92.dp)
                         ) {
                             if (matches.isEmpty()) {
                                 item {
                                     ToolStateBanner(
                                         kind = ToolStateKind.EMPTY,
                                         title = "No tools match \"$searchQuery\"",
-                                        detail = "Try another keyword such as tuner, c4, ruler, fasting, or invoice.",
+                                        detail = "Try another keyword such as ai, diff, totp, tuner, c4, ruler, fasting, or invoice.",
                                         chapterHue = look.accentHue,
                                         actionLabel = "Clear Search",
                                         onAction = { onSearchQueryChange("") }
                                     )
                                 }
                             } else {
-                                itemsIndexed(matches.chunked(toolColumns), key = { _, row -> row.joinToString { it.id } }) { idx, rowTools ->
-                                    StaggeredEntrance(idx) {
-                                        ToolRowPair(rowTools, toolColumns, pinnedToolIds, onOpenTool)
-                                    }
+                                items(
+                                    items = matches.chunked(toolColumns),
+                                    key = { row -> row.joinToString("_") { it.id } }
+                                ) { rowTools ->
+                                    ToolRowPair(
+                                        tools = rowTools,
+                                        columns = toolColumns,
+                                        pinnedToolIds = pinnedToolIds,
+                                        onOpenTool = onOpenTool,
+                                        modifier = Modifier.scrollReactiveItem(vel)
+                                    )
                                 }
                             }
                         }
@@ -626,14 +988,23 @@ fun ToolsDirectoryScreen(
                         val cat = selectedCategory ?: ToolCategory.ALL
                         val catTools = remember(cat) { ToolRegistry.getToolsByCategory(cat) }
                         LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .nestedScroll(scrollVel.nestedScrollConnection),
                             verticalArrangement = Arrangement.spacedBy(10.dp),
-                            contentPadding = PaddingValues(bottom = 18.dp)
+                            contentPadding = PaddingValues(bottom = 92.dp)
                         ) {
-                            itemsIndexed(catTools.chunked(toolColumns), key = { _, row -> row.joinToString { it.id } }) { idx, rowTools ->
-                                StaggeredEntrance(idx) {
-                                    ToolRowPair(rowTools, toolColumns, pinnedToolIds, onOpenTool)
-                                }
+                            items(
+                                items = catTools.chunked(toolColumns),
+                                key = { row -> row.joinToString("_") { it.id } }
+                            ) { rowTools ->
+                                ToolRowPair(
+                                    tools = rowTools,
+                                    columns = toolColumns,
+                                    pinnedToolIds = pinnedToolIds,
+                                    onOpenTool = onOpenTool,
+                                    modifier = Modifier.scrollReactiveItem(vel)
+                                )
                             }
                         }
                     }
@@ -659,7 +1030,7 @@ private fun CategoryGridCard(
             .minimumInteractiveComponentSize()
             .clip(SwissCardShape)
             .background(palette.paper2)
-            .border(1.dp, col.copy(alpha = 0.25f), SwissCardShape)
+            .border(0.8.dp, palette.hairline, SwissCardShape)
             .clickable(
                 interactionSource = interactionSource,
                 indication = androidx.compose.material3.ripple(),
@@ -678,8 +1049,8 @@ private fun CategoryGridCard(
                 icon = ToolIconResolver.categoryIcon(category),
                 accentColor = col,
                 contentDescription = category.label,
-                sizeDp = 42.dp,
-                iconSizeDp = 22.dp
+                sizeDp = 40.dp,
+                iconSizeDp = 21.dp
             )
             if (category.isFlagship) {
                 PixelStamp("SUITE", col)
@@ -695,7 +1066,7 @@ private fun CategoryGridCard(
         Column(verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Text(
                 text = category.label,
-                style = DotkitType.editorialHeading(16),
+                style = DotkitType.editorialHeading(15),
                 color = palette.ink,
                 maxLines = 1
             )
@@ -716,7 +1087,9 @@ private fun SectionHeaderRow(
 ) {
     val palette = LocalDotkitLook.current.palette
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 4.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -736,55 +1109,6 @@ private fun SectionHeaderRow(
 }
 
 @Composable
-private fun RecentToolTile(
-    tool: ToolMeta,
-    onClick: () -> Unit
-) {
-    val palette = LocalDotkitLook.current.palette
-    val catColor = palette.chapterColor(tool.category.hue)
-    val interactionSource = remember { MutableInteractionSource() }
-    Column(
-        modifier = Modifier
-            .width(172.dp)
-            .springPressScale(interactionSource, 0.96f)
-            .minimumInteractiveComponentSize()
-            .clip(SwissCardShape)
-            .background(palette.paper2)
-            .border(1.dp, palette.hairline.copy(alpha = 0.7f), SwissCardShape)
-            .clickable(
-                interactionSource = interactionSource,
-                indication = androidx.compose.material3.ripple(),
-                role = Role.Button,
-                onClick = onClick
-            )
-            .testTag("recent_card_${tool.id}")
-            .padding(14.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            ToolBadgeIcon(meta = tool, accentColor = catColor, sizeDp = 36.dp, iconSizeDp = 19.dp)
-            PixelStamp(tool.category.label.uppercase(), catColor)
-        }
-        Text(
-            text = tool.name,
-            style = DotkitType.bodyUi(14, bold = true),
-            color = palette.ink,
-            maxLines = 1
-        )
-        Text(
-            text = tool.tagline,
-            style = DotkitType.bodyUi(11),
-            color = palette.ink2,
-            maxLines = 2
-        )
-    }
-}
-
-@Composable
 private fun CategoryTile(
     category: ToolCategory,
     count: Int,
@@ -800,7 +1124,7 @@ private fun CategoryTile(
             .minimumInteractiveComponentSize()
             .clip(SwissCardShape)
             .background(palette.paper2)
-            .border(1.dp, palette.hairline.copy(alpha = 0.65f), SwissCardShape)
+            .border(0.8.dp, palette.hairline, SwissCardShape)
             .clickable(
                 interactionSource = interactionSource,
                 indication = androidx.compose.material3.ripple(),
@@ -846,10 +1170,11 @@ private fun ToolRowPair(
     tools: List<ToolMeta>,
     columns: Int,
     pinnedToolIds: List<String>,
-    onOpenTool: (toolId: String, payload: String) -> Unit
+    onOpenTool: (toolId: String, payload: String) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = modifier.fillMaxWidth(),
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         tools.forEach { tool ->
@@ -883,7 +1208,7 @@ private fun MinimalToolCard(
             .minimumInteractiveComponentSize()
             .clip(SwissCardShape)
             .background(palette.paper2)
-            .border(1.dp, palette.hairline.copy(alpha = 0.65f), SwissCardShape)
+            .border(0.8.dp, palette.hairline, SwissCardShape)
             .clickable(
                 interactionSource = interactionSource,
                 indication = androidx.compose.material3.ripple(),
@@ -891,15 +1216,15 @@ private fun MinimalToolCard(
                 onClick = onClick
             )
             .testTag("tool_card_${tool.id}")
-            .padding(14.dp),
+            .padding(horizontal = 14.dp, vertical = 12.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         ToolBadgeIcon(
             meta = tool,
             accentColor = accent,
-            sizeDp = 44.dp,
-            iconSizeDp = 22.dp
+            sizeDp = 42.dp,
+            iconSizeDp = 21.dp
         )
         Column(modifier = Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(2.dp)) {
             Row(
@@ -909,8 +1234,9 @@ private fun MinimalToolCard(
             ) {
                 Text(
                     text = tool.name,
-                    style = DotkitType.editorialHeading(16),
+                    style = DotkitType.editorialHeading(15),
                     color = palette.ink,
+                    maxLines = 1,
                     modifier = Modifier.weight(1f)
                 )
                 if (isPinned) {
@@ -918,7 +1244,7 @@ private fun MinimalToolCard(
                         imageVector = Icons.Rounded.Star,
                         contentDescription = "Pinned",
                         tint = accent,
-                        modifier = Modifier.size(16.dp)
+                        modifier = Modifier.size(15.dp)
                     )
                 }
             }
@@ -926,8 +1252,14 @@ private fun MinimalToolCard(
                 text = tool.tagline,
                 style = DotkitType.bodyUi(12),
                 color = palette.ink2,
-                maxLines = 2
+                maxLines = 1
             )
         }
+        Icon(
+            imageVector = Icons.AutoMirrored.Rounded.KeyboardArrowRight,
+            contentDescription = null,
+            tint = palette.ink3,
+            modifier = Modifier.size(18.dp)
+        )
     }
 }

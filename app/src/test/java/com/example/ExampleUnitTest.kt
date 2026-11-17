@@ -23,6 +23,15 @@ import com.example.lib.dev.PasswordQrEngine
 import com.example.lib.dev.SerpPreviewEngine
 import com.example.lib.dev.SqlFormatterEngine
 import com.example.lib.dev.ThreadSplitterEngine
+import com.example.lib.expansions.AspectRatioEngine
+import com.example.lib.expansions.GradientBezierEngine
+import com.example.lib.expansions.GradientKind
+import com.example.lib.expansions.GradientStopSpec
+import com.example.lib.expansions.ImagePaletteEngine
+import com.example.lib.expansions.JsonDiffKind
+import com.example.lib.expansions.JsonDiffSchemaEngine
+import com.example.lib.expansions.SubnetTotpEngine
+import com.example.lib.expansions.SvgVectorEngine
 import com.example.lib.format.NumberFormatters
 import com.example.lib.games.BlackjackEngine
 import com.example.lib.games.CheckersEngine
@@ -232,10 +241,10 @@ class ExampleUnitTest {
     }
 
     @Test
-    fun toolRegistry_all194ToolsUniqueWithUniqueIconsAndKeywordSearchWorks() {
-        assertEquals(194, ToolRegistry.LIVE_TOOLS.size)
-        assertEquals(194, ToolRegistry.ALL_TOOLS.map { it.id }.distinct().size)
-        assertEquals(194, ToolRegistry.ALL_TOOLS.map { it.name }.distinct().size)
+    fun toolRegistry_all206ToolsUniqueWithUniqueIconsAndKeywordSearchWorks() {
+        assertEquals(206, ToolRegistry.LIVE_TOOLS.size)
+        assertEquals(206, ToolRegistry.ALL_TOOLS.map { it.id }.distinct().size)
+        assertEquals(206, ToolRegistry.ALL_TOOLS.map { it.name }.distinct().size)
 
         ToolRegistry.ALL_TOOLS.forEach { tool ->
             assertNotNull("Missing explicit icon for ${tool.id}", ToolIconResolver.toolIconById(tool.id))
@@ -399,5 +408,42 @@ class ExampleUnitTest {
 
         val b32 = Base32HexEngine.encodeBase32("Omni".toByteArray())
         assertEquals("Omni", Base32HexEngine.decodeBase32(b32).toString(Charsets.UTF_8))
+    }
+
+    @Test
+    fun expansionPackIII_enginesWorkAccurately() {
+        val diff = JsonDiffSchemaEngine.diffJson("""{"a":1,"b":2}""", """{"a":1,"b":3,"c":true}""")
+        assertTrue(diff.valid)
+        assertTrue(diff.entries.any { it.path == "$.b" && it.kind == JsonDiffKind.CHANGED })
+        assertTrue(diff.entries.any { it.path == "$.c" && it.kind == JsonDiffKind.ADDED })
+        assertTrue(JsonDiffSchemaEngine.generateKotlinDataClasses("""{"id":1,"name":"Omni"}""").getOrThrow().contains("data class RootPayload"))
+        assertTrue(JsonDiffSchemaEngine.generateTypeScriptInterfaces("""{"id":1}""").getOrThrow().contains("export interface RootPayload"))
+
+        val svg = SvgVectorEngine.optimizeAndInspect("""<svg viewBox="0 0 24 24"><!-- c --><metadata>x</metadata><path d="M1.12345 2.0000 Z"/></svg>""", 2)
+        assertFalse(svg.optimizedSvg.contains("<metadata>"))
+        assertTrue(svg.savingsPercent > 0f)
+
+        val css = GradientBezierEngine.toCss(GradientKind.LINEAR, 90, listOf(GradientStopSpec(0xFF000000.toInt(), 0), GradientStopSpec(0xFFFFFFFF.toInt(), 100)))
+        assertTrue(css.contains("linear-gradient(90deg"))
+        assertEquals(0.5f, GradientBezierEngine.sampleCubicBezier(0f, 0f, 1f, 1f, 0.5f), 0.02f)
+
+        val ratio = AspectRatioEngine.analyze(1920, 1080)
+        assertEquals("16:9", ratio.ratioLabel)
+        assertEquals(720, AspectRatioEngine.scaleHeightForRatio(1920, 1080, 1280))
+        assertEquals(50.0, AspectRatioEngine.ruleOfThree(2.0, 10.0, 10.0)!!, 1e-6)
+
+        val subnet = SubnetTotpEngine.parseIpv4Cidr("192.168.1.42/24")
+        assertTrue(subnet.valid)
+        assertEquals("192.168.1.0", subnet.networkAddress)
+        assertEquals("192.168.1.255", subnet.broadcastAddress)
+        assertEquals(254L, subnet.usableHosts)
+
+        // RFC 6238 SHA-1 test vector for ASCII "12345678901234567890" -> Base32 GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ at epoch 59 -> "94287082" (8 digits)
+        val totp = SubnetTotpEngine.computeTotp("GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ", epochSeconds = 59L, periodSec = 30, digits = 8)
+        assertTrue(totp.valid)
+        assertEquals("94287082", totp.code)
+
+        val swatches = ImagePaletteEngine.extractTopSwatches(intArrayOf(0xFF2563EB.toInt(), 0xFF2563EB.toInt(), 0xFF10B981.toInt()), 4)
+        assertEquals(2, swatches.size)
     }
 }

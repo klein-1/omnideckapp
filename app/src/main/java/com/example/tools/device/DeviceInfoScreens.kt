@@ -291,7 +291,7 @@ fun DeviceInfoScreen(
                 val dm = context.getSystemService(Context.DISPLAY_SERVICE) as? DisplayManager
                 val activeDisplay = dm?.getDisplay(Display.DEFAULT_DISPLAY)
                 val refreshHz = activeDisplay?.refreshRate ?: 60f
-                val hdrCaps = if (Build.VERSION.SDK_INT >= 24 && activeDisplay?.isHdr == true) "HDR Supported" else "SDR"
+                val hdrCaps = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O && activeDisplay?.isHdr == true) "HDR Supported" else "SDR"
                 val codecCount = remember { runCatching { MediaCodecList(MediaCodecList.REGULAR_CODECS).codecInfos.size }.getOrDefault(0) }
                 val cameraLenses = remember { DeviceInfoProbes.queryCamera2Capabilities(context) }
                 val mountLines = remember(refreshTick) { DeviceInfoProbes.queryMountsSummary() }
@@ -302,8 +302,8 @@ fun DeviceInfoScreen(
                     listOf(
                         "NFC" to pm.hasSystemFeature(PackageManager.FEATURE_NFC),
                         "BLE" to pm.hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE),
-                        "Biometric" to (Build.VERSION.SDK_INT >= 23 && pm.hasSystemFeature(PackageManager.FEATURE_FINGERPRINT)),
-                        "Vulkan" to (Build.VERSION.SDK_INT >= 24 && pm.hasSystemFeature(PackageManager.FEATURE_VULKAN_HARDWARE_LEVEL)),
+                        "Biometric" to pm.hasSystemFeature(PackageManager.FEATURE_FINGERPRINT),
+                        "Vulkan" to pm.hasSystemFeature(PackageManager.FEATURE_VULKAN_HARDWARE_LEVEL),
                         "GPS" to pm.hasSystemFeature(PackageManager.FEATURE_LOCATION_GPS),
                         "Camera2" to pm.hasSystemFeature(PackageManager.FEATURE_CAMERA_ANY),
                         "USB Host" to pm.hasSystemFeature(PackageManager.FEATURE_USB_HOST)

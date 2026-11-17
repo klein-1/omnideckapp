@@ -6,6 +6,7 @@ import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.Spring
+import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -49,7 +50,6 @@ import androidx.compose.material.icons.rounded.Folder
 import androidx.compose.material.icons.rounded.GridView
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.Settings
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
@@ -65,7 +65,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
@@ -131,7 +133,27 @@ fun DotkitShell(
     val lastHashAlgorithm by vm.lastHashAlgorithm.collectAsStateWithLifecycle()
     val toastMessage by vm.toastMessage.collectAsStateWithLifecycle()
 
-    val palette = lookState.palette
+    val animDuration = if (lookState.motionMode == MotionMode.OFF) 0 else 240
+    val animPaper by animateColorAsState(lookState.palette.paper, tween(animDuration), label = "theme_paper")
+    val animPaper2 by animateColorAsState(lookState.palette.paper2, tween(animDuration), label = "theme_paper2")
+    val animPaper3 by animateColorAsState(lookState.palette.paper3, tween(animDuration), label = "theme_paper3")
+    val animInk by animateColorAsState(lookState.palette.ink, tween(animDuration), label = "theme_ink")
+    val animInk2 by animateColorAsState(lookState.palette.ink2, tween(animDuration), label = "theme_ink2")
+    val animInk3 by animateColorAsState(lookState.palette.ink3, tween(animDuration), label = "theme_ink3")
+
+    val smoothLook = remember(lookState, animPaper, animPaper2, animPaper3, animInk, animInk2, animInk3) {
+        lookState.copy(
+            palette = lookState.palette.copy(
+                paper = animPaper,
+                paper2 = animPaper2,
+                paper3 = animPaper3,
+                ink = animInk,
+                ink2 = animInk2,
+                ink3 = animInk3
+            )
+        )
+    }
+    val palette = smoothLook.palette
 
     BackHandler(
         enabled = activeToolId != null ||
@@ -171,10 +193,10 @@ fun DotkitShell(
         )
     }
 
-    CompositionLocalProvider(LocalDotkitLook provides lookState) {
+    CompositionLocalProvider(LocalDotkitLook provides smoothLook) {
         MaterialTheme(
             colorScheme = colorScheme,
-            typography = buildMaterialTypography(lookState.dyslexiaFriendly, lookState.uiScale)
+            typography = buildMaterialTypography(smoothLook.dyslexiaFriendly, smoothLook.uiScale)
         ) {
             BoxWithConstraints(
                 modifier = Modifier
@@ -188,12 +210,12 @@ fun DotkitShell(
                     containerColor = palette.paper,
                     contentWindowInsets = WindowInsets.safeDrawing,
                     bottomBar = {
-                        if (!isWideScreen) {
-                            OmniDeckBottomBar(
+                        if (!isWideScreen && activeToolId == null) {
+                            OmniDeckFloatingCapsuleBar(
                                 activeTab = activeTab,
-                                hasActiveTool = activeToolId != null,
+                                hasActiveTool = false,
                                 onSelectTab = { tab ->
-                                    PixelSoundEngine.playBlip(lookState.soundEnabled, 620, 16)
+                                    PixelSoundEngine.playBlip(smoothLook.soundEnabled, 620, 14)
                                     vm.selectTab(tab)
                                 }
                             )
@@ -210,7 +232,7 @@ fun DotkitShell(
                                 activeTab = activeTab,
                                 hasActiveTool = activeToolId != null,
                                 onSelectTab = { tab ->
-                                    PixelSoundEngine.playBlip(lookState.soundEnabled, 620, 16)
+                                    PixelSoundEngine.playBlip(smoothLook.soundEnabled, 620, 14)
                                     vm.selectTab(tab)
                                 }
                             )
@@ -223,16 +245,18 @@ fun DotkitShell(
                             AnimatedContent(
                                 targetState = navKey,
                                 transitionSpec = {
-                                    if (lookState.motionMode == MotionMode.OFF) {
+                                    if (smoothLook.motionMode == MotionMode.OFF) {
                                         fadeIn(tween(0)) togetherWith fadeOut(tween(0))
                                     } else {
                                         val enteringTool = targetState !is ShellTab
                                         if (enteringTool) {
-                                            (fadeIn(tween(220)) + scaleIn(initialScale = 0.96f, animationSpec = spring(stiffness = Spring.StiffnessMedium)) + slideInVertically(tween(220)) { it / 18 })
-                                                .togetherWith(fadeOut(tween(150)))
+                                            (fadeIn(tween(200)) +
+                                                scaleIn(initialScale = 0.965f, animationSpec = spring(dampingRatio = 0.8f, stiffness = Spring.StiffnessMedium)) +
+                                                slideInVertically(tween(200)) { it / 20 })
+                                                .togetherWith(fadeOut(tween(130)))
                                         } else {
-                                            (fadeIn(tween(200)) + slideInHorizontally(tween(200)) { it / 24 })
-                                                .togetherWith(fadeOut(tween(150)) + slideOutHorizontally(tween(150)) { -it / 24 })
+                                            (fadeIn(tween(180)) + slideInHorizontally(tween(180)) { it / 28 })
+                                                .togetherWith(fadeOut(tween(130)) + slideOutHorizontally(tween(130)) { -it / 28 })
                                         }
                                     }
                                 },
@@ -271,6 +295,7 @@ fun DotkitShell(
                                                 vm.selectCategory(null)
                                                 vm.selectTab(ShellTab.TOOLS)
                                             },
+                                            onToggleLightDark = { vm.toggleLightDarkQuick() },
                                             onToast = { vm.showToast(it) }
                                         )
                                         ShellTab.TOOLS -> ToolsDirectoryScreen(
@@ -280,6 +305,7 @@ fun DotkitShell(
                                             onSelectCategory = { vm.selectCategory(it) },
                                             pinnedToolIds = pinnedToolIds,
                                             onOpenTool = { id, payload -> vm.openTool(id, payload) },
+                                            onToggleLightDark = { vm.toggleLightDarkQuick() },
                                             onToast = { vm.showToast(it) }
                                         )
                                         ShellTab.FILES -> FilesAndLedgerScreen(
@@ -320,7 +346,7 @@ fun DotkitShell(
                             androidx.compose.animation.AnimatedVisibility(
                                 visible = toastMessage != null,
                                 enter = fadeIn(tween(180)) + slideInVertically(tween(180)) { it / 2 },
-                                exit = fadeOut(tween(150)) + slideOutVertically(tween(150)) { it / 2 },
+                                exit = fadeOut(tween(140)) + slideOutVertically(tween(140)) { it / 2 },
                                 modifier = Modifier
                                     .align(Alignment.BottomCenter)
                                     .padding(16.dp)
@@ -329,9 +355,9 @@ fun DotkitShell(
                                     modifier = Modifier
                                         .widthIn(max = 520.dp)
                                         .fillMaxWidth()
-                                        .clip(RoundedCornerShape(14.dp))
+                                        .clip(RoundedCornerShape(16.dp))
                                         .background(palette.ink)
-                                        .border(1.dp, palette.accentColor.copy(alpha = 0.6f), RoundedCornerShape(14.dp))
+                                        .border(0.8.dp, palette.accentColor.copy(alpha = 0.65f), RoundedCornerShape(16.dp))
                                         .padding(horizontal = 16.dp, vertical = 12.dp)
                                 ) {
                                     Text(
@@ -357,21 +383,37 @@ private fun tabIcon(tab: ShellTab, selected: Boolean): ImageVector = when (tab) 
 }
 
 @Composable
-private fun OmniDeckBottomBar(
+private fun OmniDeckFloatingCapsuleBar(
     activeTab: ShellTab,
     hasActiveTool: Boolean,
     onSelectTab: (ShellTab) -> Unit
 ) {
     val look = LocalDotkitLook.current
     val palette = look.palette
-    Column(modifier = Modifier.fillMaxWidth().background(palette.paper2)) {
-        HorizontalDivider(thickness = 1.dp, color = palette.hairline.copy(alpha = 0.7f))
+    val capsuleShape = RoundedCornerShape(28.dp)
+
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .windowInsetsPadding(WindowInsets.navigationBars)
+            .padding(horizontal = 16.dp, vertical = 8.dp),
+        contentAlignment = Alignment.Center
+    ) {
         Row(
             modifier = Modifier
+                .widthIn(max = 520.dp)
                 .fillMaxWidth()
-                .windowInsetsPadding(WindowInsets.navigationBars)
-                .padding(horizontal = 10.dp, vertical = 6.dp),
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
+                .shadow(
+                    elevation = if (palette.isDark) 0.dp else 8.dp,
+                    shape = capsuleShape,
+                    ambientColor = Color.Black.copy(alpha = 0.08f),
+                    spotColor = Color.Black.copy(alpha = 0.12f)
+                )
+                .clip(capsuleShape)
+                .background(palette.paper2.copy(alpha = 0.94f))
+                .border(0.8.dp, palette.hairline, capsuleShape)
+                .padding(horizontal = 6.dp, vertical = 5.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             ShellTab.entries.forEach { tab ->
@@ -387,34 +429,47 @@ private fun OmniDeckBottomBar(
                     animationSpec = tween(if (look.motionMode == MotionMode.OFF) 0 else 180),
                     label = "nav_fg_${tab.id}"
                 )
-                Column(
+                val iconScale by animateFloatAsState(
+                    targetValue = if (selected && look.motionMode != MotionMode.OFF) 1.08f else 1.0f,
+                    animationSpec = spring(dampingRatio = 0.6f, stiffness = Spring.StiffnessMedium),
+                    label = "nav_scale_${tab.id}"
+                )
+                Row(
                     modifier = Modifier
                         .weight(1f)
-                        .springPressScale(interactionSource, 0.94f)
+                        .springPressScale(interactionSource, 0.93f)
                         .minimumInteractiveComponentSize()
-                        .clip(RoundedCornerShape(14.dp))
+                        .clip(RoundedCornerShape(22.dp))
                         .background(pillBg)
                         .clickable(
                             interactionSource = interactionSource,
                             indication = androidx.compose.material3.ripple()
                         ) { onSelectTab(tab) }
                         .testTag("nav_tab_${tab.id}")
-                        .padding(vertical = 8.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(3.dp)
+                        .padding(horizontal = 8.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
                     Icon(
                         imageVector = tabIcon(tab, selected),
                         contentDescription = tab.label,
                         tint = fg,
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier
+                            .size(20.dp)
+                            .graphicsLayer {
+                                scaleX = iconScale
+                                scaleY = iconScale
+                            }
                     )
-                    Text(
-                        text = tab.label,
-                        style = DotkitType.bodyUi(11, bold = selected),
-                        color = fg,
-                        maxLines = 1
-                    )
+                    if (selected) {
+                        Spacer(Modifier.width(5.dp))
+                        Text(
+                            text = tab.label,
+                            style = DotkitType.bodyUi(12, bold = true),
+                            color = fg,
+                            maxLines = 1
+                        )
+                    }
                 }
             }
         }
@@ -432,7 +487,7 @@ private fun OmniDeckSideRail(
     Row(modifier = Modifier.fillMaxHeight().background(palette.paper2)) {
         Column(
             modifier = Modifier
-                .width(134.dp)
+                .width(138.dp)
                 .fillMaxHeight()
                 .padding(12.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -455,7 +510,7 @@ private fun OmniDeckSideRail(
                         .fillMaxWidth()
                         .springPressScale(interactionSource, 0.95f)
                         .minimumInteractiveComponentSize()
-                        .clip(RoundedCornerShape(14.dp))
+                        .clip(RoundedCornerShape(16.dp))
                         .background(bg)
                         .clickable(
                             interactionSource = interactionSource,
@@ -480,6 +535,6 @@ private fun OmniDeckSideRail(
                 }
             }
         }
-        Box(modifier = Modifier.width(1.dp).fillMaxHeight().background(palette.hairline))
+        Box(modifier = Modifier.width(0.8.dp).fillMaxHeight().background(palette.hairline))
     }
 }

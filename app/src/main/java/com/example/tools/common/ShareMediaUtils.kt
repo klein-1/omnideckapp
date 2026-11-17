@@ -5,6 +5,8 @@ import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
 import androidx.core.content.FileProvider
+import androidx.core.graphics.createBitmap
+import androidx.core.graphics.set
 import com.google.zxing.BarcodeFormat
 import com.google.zxing.EncodeHintType
 import com.google.zxing.qrcode.QRCodeWriter
@@ -43,10 +45,10 @@ object ShareMediaUtils {
     fun generateQrBitmap(content: String, sizePx: Int = 512, fg: Int = 0xFF141413.toInt(), bg: Int = 0xFFFFFFFF.toInt()): Bitmap {
         val hints = mapOf(EncodeHintType.MARGIN to 1)
         val matrix = QRCodeWriter().encode(content.ifBlank { " " }, BarcodeFormat.QR_CODE, sizePx, sizePx, hints)
-        val bmp = Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888)
+        val bmp = createBitmap(sizePx, sizePx)
         for (y in 0 until sizePx) {
             for (x in 0 until sizePx) {
-                bmp.setPixel(x, y, if (matrix.get(x, y)) fg else bg)
+                bmp[x, y] = if (matrix.get(x, y)) fg else bg
             }
         }
         return bmp

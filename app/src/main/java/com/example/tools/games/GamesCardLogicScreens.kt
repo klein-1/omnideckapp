@@ -214,8 +214,7 @@ fun GamesCardLogicScreen(
                                             } else if (selectedCol == -1) {
                                                 val card = waste.lastOrNull()
                                                 val dst = column.lastOrNull()?.card
-                                                val valid = card != null && ((dst == null && card.rank == 13) || (dst != null && dst.isRed != card.isRed && dst.rank == card.rank + 1))
-                                                if (valid && card != null) {
+                                                if (card != null && ((dst == null && card.rank == 13) || (dst != null && dst.isRed != card.isRed && dst.rank == card.rank + 1))) {
                                                     val nc = cols.mapIndexed { i, c -> if (i == colIdx) c + SolitaireCard(card, true) else c }
                                                     waste = waste.dropLast(1)
                                                     deal = Triple(nc, stock, foundations)

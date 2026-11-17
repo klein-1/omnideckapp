@@ -1,6 +1,6 @@
 package com.example.lib.dev
 
-import android.util.Base64
+import com.example.lib.crypto.PureBase64
 import org.json.JSONArray
 import org.json.JSONException
 import org.json.JSONObject
@@ -155,15 +155,7 @@ object JsonJwtEngine {
     }
 
     private fun decodeBase64Url(segment: String): String {
-        val padded = segment.replace('-', '+').replace('_', '/').let {
-            val rem = it.length % 4
-            if (rem == 0) it else it + "=".repeat(4 - rem)
-        }
-        val bytes = try {
-            Base64.decode(padded, Base64.DEFAULT)
-        } catch (_: Throwable) {
-            java.util.Base64.getDecoder().decode(padded)
-        }
+        val bytes = PureBase64.decode(segment)
         return bytes.decodeToString()
     }
 }

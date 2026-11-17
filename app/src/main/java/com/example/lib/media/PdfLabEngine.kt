@@ -12,6 +12,8 @@ import android.graphics.pdf.PdfDocument
 import android.graphics.pdf.PdfRenderer
 import android.net.Uri
 import android.os.ParcelFileDescriptor
+import androidx.core.graphics.createBitmap
+import androidx.core.graphics.withRotation
 import java.io.ByteArrayOutputStream
 import java.io.InputStream
 import java.io.OutputStream
@@ -60,7 +62,7 @@ object PdfLabEngine {
                             val scale = maxThumbWidth.toFloat() / page.width.coerceAtLeast(1)
                             val w = (page.width * scale).toInt().coerceIn(64, 2400)
                             val h = (page.height * scale).toInt().coerceIn(64, 3400)
-                            val bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+                            val bmp = createBitmap(w, h)
                             Canvas(bmp).drawColor(Color.WHITE)
                             page.render(bmp, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
                             result += bmp
@@ -127,7 +129,7 @@ object PdfLabEngine {
                     val scale = renderWidth.toFloat() / page.width.coerceAtLeast(1)
                     val w = (page.width * scale).toInt().coerceIn(200, 2200)
                     val h = (page.height * scale).toInt().coerceIn(200, 3000)
-                    var bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+                    var bmp = createBitmap(w, h)
                     Canvas(bmp).drawColor(Color.WHITE)
                     page.render(bmp, null, null, PdfRenderer.Page.RENDER_MODE_FOR_PRINT)
 
@@ -177,10 +179,9 @@ object PdfLabEngine {
                                 typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
                                 textAlign = Paint.Align.CENTER
                             }
-                            canvas.save()
-                            canvas.rotate(-32f, bmp.width / 2f, bmp.height / 2f)
-                            canvas.drawText(overlay.watermarkText, bmp.width / 2f, bmp.height / 2f, wmPaint)
-                            canvas.restore()
+                            canvas.withRotation(-32f, bmp.width / 2f, bmp.height / 2f) {
+                                drawText(overlay.watermarkText, bmp.width / 2f, bmp.height / 2f, wmPaint)
+                            }
                         }
                         if (overlay.includePageNumbers) {
                             val numPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {

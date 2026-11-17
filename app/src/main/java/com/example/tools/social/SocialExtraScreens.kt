@@ -1,7 +1,7 @@
 package com.example.tools.social
 
 import android.content.Intent
-import android.net.Uri
+import androidx.core.net.toUri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
@@ -118,9 +118,7 @@ fun SocialExtraScreen(
                             PixelTextField(term, { term = it }, "utm_term (optional)", modifier = Modifier.weight(1f))
                             PixelTextField(content, { content = it }, "utm_content (optional)", modifier = Modifier.weight(1f))
                         }
-                        if (qr != null) {
-                            Image(qr.asImageBitmap(), "Campaign QR", modifier = Modifier.size(180.dp).border(1.dp, palette.hairline).padding(6.dp))
-                        }
+                        Image(qr.asImageBitmap(), "Campaign QR", modifier = Modifier.size(180.dp).border(1.dp, palette.hairline).padding(6.dp))
                     }
                 }
             }
@@ -269,7 +267,7 @@ fun SocialExtraScreen(
                                         onSuccess = { (code, hdrs, body) ->
                                             statusLine = "HTTP $code (${ms}ms)"
                                             outputText = "=== $method $endpoint → HTTP $code (${ms}ms) ===\n$hdrs\n${body.take(8000)}"
-                                            val host = runCatching { Uri.parse(endpoint).host ?: endpoint }.getOrDefault(endpoint)
+                                            val host = runCatching { endpoint.toUri().host ?: endpoint }.getOrDefault(endpoint)
                                             onLogNetworkAudit("soc-curl", host, bodyRaw.length.toLong(), body.length.toLong(), "HTTP $code (${ms}ms)")
                                         },
                                         onFailure = { err ->
@@ -331,7 +329,7 @@ fun SocialExtraScreen(
                         if (qr != null) Image(qr.asImageBitmap(), "Deep Link QR", modifier = Modifier.size(180.dp).border(1.dp, palette.hairline).padding(6.dp))
                         PixelButton("Launch Deep Link Intent", enabled = target.isNotBlank(), chapterHue = hue, onClick = {
                             runCatching {
-                                context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(builtUri)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                                context.startActivity(Intent(Intent.ACTION_VIEW, builtUri.toUri()).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
                             }.onFailure { onStatusToast("No handler for URI: ${it.message}") }
                         }, modifier = Modifier.fillMaxWidth())
                     }

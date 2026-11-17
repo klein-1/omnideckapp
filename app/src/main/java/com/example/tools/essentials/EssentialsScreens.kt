@@ -10,6 +10,7 @@ import android.hardware.camera2.CameraManager
 import android.net.Uri
 import android.speech.RecognizerIntent
 import android.speech.tts.TextToSpeech
+import androidx.core.net.toUri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -157,7 +158,7 @@ fun EssentialsExtendedScreen(
             var tts: TextToSpeech? = null
             tts = TextToSpeech(context) { status ->
                 if (status == TextToSpeech.SUCCESS) {
-                    tts?.language = Locale(targetLang)
+                    tts?.language = Locale.forLanguageTag(targetLang)
                 }
             }
             ttsEngine = tts
@@ -324,7 +325,7 @@ fun EssentialsExtendedScreen(
                                 if (scannedCode.startsWith("http://") || scannedCode.startsWith("https://")) {
                                     PixelChip(label = "Check URL Safety →", chapterHue = hue, onClick = { onSendToTool("url-safety", scannedCode) })
                                     PixelChip(label = "Open URL", onClick = {
-                                        runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(scannedCode)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+                                        runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, scannedCode.toUri()).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
                                     })
                                 }
                             }
@@ -424,7 +425,7 @@ fun EssentialsExtendedScreen(
                                 runCatching { sttLauncher.launch(intent) }.onFailure { onStatusToast("Voice recognizer not available on device.") }
                             })
                             PixelButton(text = "Speak", variant = PixelButtonVariant.OUTLINE, chapterHue = hue, enabled = transOutput.isNotBlank(), onClick = {
-                                ttsEngine?.language = Locale(targetLang)
+                                ttsEngine?.language = Locale.forLanguageTag(targetLang)
                                 ttsEngine?.speak(transOutput, TextToSpeech.QUEUE_FLUSH, null, "tr")
                             })
                         }

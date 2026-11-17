@@ -5,10 +5,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.rounded.CompareArrows
-import androidx.compose.material.icons.automirrored.rounded.FormatListBulleted
-import androidx.compose.material.icons.automirrored.rounded.ListAlt
-import androidx.compose.material.icons.automirrored.rounded.Message
+import androidx.compose.material.icons.automirrored.rounded.*
 import androidx.compose.material.icons.rounded.*
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
@@ -29,6 +26,7 @@ object ToolIconResolver {
 
     fun categoryIcon(category: ToolCategory): ImageVector = when (category) {
         ToolCategory.ALL -> Icons.Rounded.GridView
+        ToolCategory.AI -> Icons.Rounded.AutoAwesome
         ToolCategory.DOWNLOAD -> Icons.Rounded.DownloadForOffline
         ToolCategory.URL -> Icons.Rounded.Security
         ToolCategory.SERVER -> Icons.Rounded.Dns
@@ -70,9 +68,9 @@ object ToolIconResolver {
         "img-compress" -> Icons.Rounded.Compress
         "img-draw" -> Icons.Rounded.Brush
         "img-bg" -> Icons.Rounded.LayersClear
-        "img-collage" -> Icons.Rounded.ViewQuilt
+        "img-collage" -> Icons.AutoMirrored.Rounded.ViewQuilt
         "img-gif" -> Icons.Rounded.GifBox
-        "img-watermark" -> Icons.Rounded.BrandingWatermark
+        "img-watermark" -> Icons.AutoMirrored.Rounded.BrandingWatermark
         "img-exif" -> Icons.Rounded.Info
         "img-ocr" -> Icons.Rounded.DocumentScanner
         "img-textcard" -> Icons.Rounded.Title
@@ -80,12 +78,12 @@ object ToolIconResolver {
         "img-colorpick" -> Icons.Rounded.Colorize
 
         // PDF Lab (6)
-        "pdf-merge" -> Icons.Rounded.CallMerge
-        "pdf-split" -> Icons.Rounded.CallSplit
+        "pdf-merge" -> Icons.AutoMirrored.Rounded.CallMerge
+        "pdf-split" -> Icons.AutoMirrored.Rounded.CallSplit
         "pdf-compress" -> Icons.Rounded.FolderZip
         "pdf-convert" -> Icons.Rounded.AddPhotoAlternate
         "pdf-annotate" -> Icons.Rounded.EditNote
-        "pdf-text" -> Icons.Rounded.Article
+        "pdf-text" -> Icons.AutoMirrored.Rounded.Article
 
         // Date & Time (7)
         "time-analog" -> Icons.Rounded.AccessTime
@@ -103,13 +101,13 @@ object ToolIconResolver {
         "calc-pct" -> Icons.Rounded.Percent
         "calc-auto" -> Icons.Rounded.LocalGasStation
         "calc-elec" -> Icons.Rounded.ElectricBolt
-        "calc-linechart" -> Icons.Rounded.ShowChart
+        "calc-linechart" -> Icons.AutoMirrored.Rounded.ShowChart
         "calc-piechart" -> Icons.Rounded.PieChart
 
         // Finance (7)
-        "fin-invoice" -> Icons.Rounded.ReceiptLong
+        "fin-invoice" -> Icons.AutoMirrored.Rounded.ReceiptLong
         "fin-interest" -> Icons.Rounded.Savings
-        "fin-mf" -> Icons.Rounded.TrendingUp
+        "fin-mf" -> Icons.AutoMirrored.Rounded.TrendingUp
         "fin-emi" -> Icons.Rounded.CreditScore
         "fin-gst" -> Icons.Rounded.Receipt
         "fin-fdrd" -> Icons.Rounded.AccountBalance
@@ -118,10 +116,10 @@ object ToolIconResolver {
         // Essentials (7)
         "ess-flash" -> Icons.Rounded.FlashlightOn
         "ess-qrscan" -> Icons.Rounded.QrCodeScanner
-        "ess-dict" -> Icons.Rounded.MenuBook
+        "ess-dict" -> Icons.AutoMirrored.Rounded.MenuBook
         "ess-translate" -> Icons.Rounded.Translate
         "ess-todo" -> Icons.Rounded.CheckCircleOutline
-        "ess-notes" -> Icons.Rounded.StickyNote2
+        "ess-notes" -> Icons.AutoMirrored.Rounded.StickyNote2
         "ess-shop" -> Icons.Rounded.ShoppingCart
 
         // Measurement (9)
@@ -129,7 +127,7 @@ object ToolIconResolver {
         "meas-protractor" -> Icons.Rounded.Architecture
         "meas-level" -> Icons.Rounded.ScreenRotation
         "meas-vibro" -> Icons.Rounded.Vibration
-        "meas-pedometer" -> Icons.Rounded.DirectionsWalk
+        "meas-pedometer" -> Icons.AutoMirrored.Rounded.DirectionsWalk
         "meas-speedtest" -> Icons.Rounded.NetworkCheck
         "meas-pendulum" -> Icons.Rounded.Timelapse
         "meas-sound" -> Icons.Rounded.Hearing
@@ -180,7 +178,7 @@ object ToolIconResolver {
         "devinfo-bat" -> Icons.Rounded.BatteryChargingFull
         "devinfo-sensors" -> Icons.Rounded.Sensors
         "devinfo-net" -> Icons.Rounded.WifiFind
-        "devinfo-bt" -> Icons.Rounded.BluetoothSearching
+        "devinfo-bt" -> Icons.AutoMirrored.Rounded.BluetoothSearching
         "devinfo-screen" -> Icons.Rounded.TouchApp
         "devinfo-speaker" -> Icons.Rounded.SpeakerPhone
 
@@ -246,7 +244,7 @@ object ToolIconResolver {
         "soc-og" -> Icons.Rounded.Share
         "soc-vcard" -> Icons.Rounded.ContactPage
         "soc-curl" -> Icons.Rounded.Http
-        "soc-deeplink" -> Icons.Rounded.OpenInNew
+        "soc-deeplink" -> Icons.AutoMirrored.Rounded.OpenInNew
         "soc-biopage" -> Icons.Rounded.Web
 
         // Developer (8 + 2 = 10)
@@ -254,7 +252,7 @@ object ToolIconResolver {
         "dev-json" -> Icons.Rounded.DataObject
         "dev-pass" -> Icons.Rounded.Shield
         "dev-color" -> Icons.Rounded.ColorLens
-        "dev-regex" -> Icons.Rounded.ManageSearch
+        "dev-regex" -> Icons.AutoMirrored.Rounded.ManageSearch
         "dev-cron" -> Icons.Rounded.EventRepeat
         "dev-dns" -> Icons.Rounded.Dns
         "dev-sandbox" -> Icons.Rounded.Code
@@ -275,12 +273,12 @@ object ToolIconResolver {
         "game-scramble" -> Icons.Rounded.SortByAlpha
         "game-party" -> Icons.Rounded.Celebration
 
-        "hlth-cycle" -> Icons.Rounded.EventNote
+        "hlth-cycle" -> Icons.AutoMirrored.Rounded.EventNote
         "hlth-workout" -> Icons.Rounded.SportsGymnastics
         "hlth-posture" -> Icons.Rounded.Accessibility
 
         "bench-matrix" -> Icons.Rounded.AutoAwesomeMosaic
-        "bench-readwpm" -> Icons.Rounded.MenuBook
+        "bench-readwpm" -> Icons.AutoMirrored.Rounded.MenuBook
         "bench-gonogo" -> Icons.Rounded.Traffic
 
         "soc-thread" -> Icons.Rounded.Forum
@@ -290,6 +288,20 @@ object ToolIconResolver {
         "dev-sqlfmt" -> Icons.Rounded.Storage
         "dev-cert" -> Icons.Rounded.Key
         "dev-httpref" -> Icons.Rounded.Http
+
+        // Expansion Pack III: AI Studio + Web Studio Parity (+12)
+        "ai-writer" -> Icons.Rounded.EditNote
+        "ai-prompt" -> Icons.Rounded.AutoAwesome
+        "ai-code" -> Icons.Rounded.IntegrationInstructions
+        "dev-diffjson" -> Icons.Rounded.Compare
+        "dev-svg" -> Icons.Rounded.Polyline
+        "dev-gradient" -> Icons.Rounded.Gradient
+        "net-subnet" -> Icons.Rounded.Hub
+        "net-totp" -> Icons.Rounded.Pin
+        "img-favicon" -> Icons.Rounded.AppShortcut
+        "img-palette" -> Icons.Rounded.ColorLens
+        "calc-ratio" -> Icons.Rounded.AspectRatio
+        "fin-subs" -> Icons.Rounded.Autorenew
 
         else -> null
     }

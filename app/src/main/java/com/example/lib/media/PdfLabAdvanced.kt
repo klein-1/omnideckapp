@@ -20,6 +20,9 @@ import android.print.PrintAttributes
 import android.print.PrintDocumentAdapter
 import android.print.PrintDocumentInfo
 import android.print.PrintManager
+import androidx.core.graphics.createBitmap
+import androidx.core.graphics.scale
+import androidx.core.graphics.withRotation
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.io.FileInputStream
@@ -50,7 +53,7 @@ data class PdfDeepAudit(
 object PdfLabAdvanced {
 
     fun isPageMostlyBlank(bmp: Bitmap): Boolean {
-        val tiny = Bitmap.createScaledBitmap(bmp, 32, 32, true)
+        val tiny = bmp.scale(32, 32)
         val pix = IntArray(32 * 32)
         tiny.getPixels(pix, 0, 32, 0, 0, 32, 32)
         var nonWhite = 0
@@ -154,7 +157,7 @@ object PdfLabAdvanced {
                     val scale = renderWidth.toFloat() / page.width.coerceAtLeast(1)
                     val w = (page.width * scale).toInt().coerceIn(200, 2000)
                     val h = (page.height * scale).toInt().coerceIn(200, 2800)
-                    var bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+                    var bmp = createBitmap(w, h)
                     Canvas(bmp).drawColor(Color.WHITE)
                     page.render(bmp, null, null, PdfRenderer.Page.RENDER_MODE_FOR_PRINT)
                     if (skipBlankPages && isPageMostlyBlank(bmp)) return@use
@@ -251,10 +254,9 @@ object PdfLabAdvanced {
                         typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
                         textAlign = Paint.Align.CENTER
                     }
-                    canvas.save()
-                    canvas.rotate(-30f, baseW / 2f, baseH / 2f)
-                    canvas.drawText(watermarkText, baseW / 2f, baseH / 2f, wmPaint)
-                    canvas.restore()
+                    canvas.withRotation(-30f, baseW / 2f, baseH / 2f) {
+                        drawText(watermarkText, baseW / 2f, baseH / 2f, wmPaint)
+                    }
                 }
 
                 // Signature

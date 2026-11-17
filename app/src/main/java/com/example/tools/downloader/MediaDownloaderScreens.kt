@@ -1,6 +1,7 @@
 package com.example.tools.downloader
 
 import android.content.Intent
+import androidx.core.net.toUri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -358,7 +359,7 @@ fun MediaDownloaderTool(
                                 }
                                 if (job.outputPath.startsWith("content://")) {
                                     PixelChip(label = "Open", chapterHue = hue, onClick = {
-                                        runCatching { context.startActivity(Intent(Intent.ACTION_VIEW).setData(android.net.Uri.parse(job.outputPath)).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)) }
+                                        runCatching { context.startActivity(Intent(Intent.ACTION_VIEW).setData(job.outputPath.toUri()).addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)) }
                                     })
                                 }
                                 PixelChip(label = "✕", onClick = { onDeleteJob(job.id) })

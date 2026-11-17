@@ -3,6 +3,7 @@ package com.example.tools.social
 import android.content.Intent
 import android.graphics.Bitmap
 import android.net.Uri
+import androidx.core.net.toUri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -107,7 +108,7 @@ fun SocialWebScreens(
                             chapterHue = hue,
                             onClick = {
                                 runCatching {
-                                    context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(waUrl)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+                                    context.startActivity(Intent(Intent.ACTION_VIEW, waUrl.toUri()).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
                                 }.onFailure { onStatusToast("Could not open link: ${it.message}") }
                             },
                             modifier = Modifier.fillMaxWidth()

@@ -1,6 +1,5 @@
 package com.example.lib.crypto
 
-import android.util.Base64
 import java.security.MessageDigest
 import java.util.zip.Adler32
 import java.util.zip.CRC32
@@ -72,7 +71,7 @@ object HashEngine {
             HashAlgorithm.SHA512 -> "HmacSHA512"
             else -> "HmacSHA256"
         }
-        val keyBytes = if (secret.isEmpty()) ByteArray(1) { 0 } else secret.encodeToByteArray()
+        val keyBytes = if (secret.isEmpty()) ByteArray(1) else secret.encodeToByteArray()
         val mac = Mac.getInstance(jceName)
         mac.init(SecretKeySpec(keyBytes, jceName))
         val out = mac.doFinal(text.encodeToByteArray())
@@ -260,10 +259,6 @@ object HashEngine {
         for (i in out.indices) {
             out[i] = clean.substring(i * 2, i * 2 + 2).toInt(16).toByte()
         }
-        return try {
-            Base64.encodeToString(out, Base64.NO_WRAP)
-        } catch (_: Throwable) {
-            java.util.Base64.getEncoder().encodeToString(out)
-        }
+        return PureBase64.encode(out)
     }
 }

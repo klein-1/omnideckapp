@@ -2,6 +2,7 @@ package com.example.services.storage
 
 import android.content.Context
 import android.content.SharedPreferences
+import androidx.core.content.edit
 import com.example.design.ChapterHue
 import com.example.design.MotionMode
 import com.example.design.RegionFormat
@@ -154,61 +155,61 @@ class DotkitRepository(context: Context) {
         dao.clearAllSavedFiles()
         dao.clearAllHistory()
         dao.clearNetworkLedger()
-        prefs.edit().clear().apply()
+        prefs.edit { clear() }
     }
 
     // Preferences
     fun getThemeMode(): ThemeMode =
-        runCatching { ThemeMode.valueOf(prefs.getString("theme", ThemeMode.PAPER.name)!!) }.getOrDefault(ThemeMode.PAPER)
+        runCatching { ThemeMode.valueOf(prefs.getString("theme", ThemeMode.INK.name)!!) }.getOrDefault(ThemeMode.INK)
 
-    fun setThemeMode(mode: ThemeMode) = prefs.edit().putString("theme", mode.name).apply()
+    fun setThemeMode(mode: ThemeMode) = prefs.edit { putString("theme", mode.name) }
 
     fun getAccentHue(): ChapterHue =
-        runCatching { ChapterHue.valueOf(prefs.getString("accent", ChapterHue.VERMILION.name)!!) }.getOrDefault(ChapterHue.VERMILION)
+        runCatching { ChapterHue.valueOf(prefs.getString("accent", ChapterHue.COBALT.name)!!) }.getOrDefault(ChapterHue.COBALT)
 
-    fun setAccentHue(hue: ChapterHue) = prefs.edit().putString("accent", hue.name).apply()
+    fun setAccentHue(hue: ChapterHue) = prefs.edit { putString("accent", hue.name) }
 
     fun getMotionMode(): MotionMode =
         runCatching { MotionMode.valueOf(prefs.getString("motion", MotionMode.FULL.name)!!) }.getOrDefault(MotionMode.FULL)
 
-    fun setMotionMode(mode: MotionMode) = prefs.edit().putString("motion", mode.name).apply()
+    fun setMotionMode(mode: MotionMode) = prefs.edit { putString("motion", mode.name) }
 
     fun getUiScale(): Float = prefs.getFloat("ui_scale", 1.0f).coerceIn(0.85f, 1.4f)
-    fun setUiScale(scale: Float) = prefs.edit().putFloat("ui_scale", scale).apply()
+    fun setUiScale(scale: Float) = prefs.edit { putFloat("ui_scale", scale) }
 
     fun getDensity(): UiDensity =
         runCatching { UiDensity.valueOf(prefs.getString("density", UiDensity.COZY.name)!!) }.getOrDefault(UiDensity.COZY)
 
-    fun setDensity(density: UiDensity) = prefs.edit().putString("density", density.name).apply()
+    fun setDensity(density: UiDensity) = prefs.edit { putString("density", density.name) }
 
     fun isDyslexiaFriendly(): Boolean = prefs.getBoolean("dyslexia", false)
-    fun setDyslexiaFriendly(v: Boolean) = prefs.edit().putBoolean("dyslexia", v).apply()
+    fun setDyslexiaFriendly(v: Boolean) = prefs.edit { putBoolean("dyslexia", v) }
 
     fun isSoundEnabled(): Boolean = prefs.getBoolean("sound", false)
-    fun setSoundEnabled(v: Boolean) = prefs.edit().putBoolean("sound", v).apply()
+    fun setSoundEnabled(v: Boolean) = prefs.edit { putBoolean("sound", v) }
 
     fun isHapticsEnabled(): Boolean = prefs.getBoolean("haptics", true)
-    fun setHapticsEnabled(v: Boolean) = prefs.edit().putBoolean("haptics", v).apply()
+    fun setHapticsEnabled(v: Boolean) = prefs.edit { putBoolean("haptics", v) }
 
     fun isConfettiEnabled(): Boolean = prefs.getBoolean("confetti", true)
-    fun setConfettiEnabled(v: Boolean) = prefs.edit().putBoolean("confetti", v).apply()
+    fun setConfettiEnabled(v: Boolean) = prefs.edit { putBoolean("confetti", v) }
 
     fun getRegionFormat(): RegionFormat =
         runCatching { RegionFormat.valueOf(prefs.getString("region", RegionFormat.EN_IN.name)!!) }.getOrDefault(RegionFormat.EN_IN)
 
-    fun setRegionFormat(region: RegionFormat) = prefs.edit().putString("region", region.name).apply()
+    fun setRegionFormat(region: RegionFormat) = prefs.edit { putString("region", region.name) }
 
     fun getCompanionUrl(): String = prefs.getString("companion_url", "http://127.0.0.1:8787") ?: "http://127.0.0.1:8787"
-    fun setCompanionUrl(url: String) = prefs.edit().putString("companion_url", url).apply()
+    fun setCompanionUrl(url: String) = prefs.edit { putString("companion_url", url) }
 
     fun getCompanionToken(): String = prefs.getString("companion_token", "") ?: ""
-    fun setCompanionToken(token: String) = prefs.edit().putString("companion_token", token).apply()
+    fun setCompanionToken(token: String) = prefs.edit { putString("companion_token", token) }
 
     fun getGeminiKeyOverride(): String = prefs.getString("gemini_key", "") ?: ""
-    fun setGeminiKeyOverride(key: String) = prefs.edit().putString("gemini_key", key).apply()
+    fun setGeminiKeyOverride(key: String) = prefs.edit { putString("gemini_key", key) }
 
     fun isOfflineOnlyAi(): Boolean = prefs.getBoolean("offline_only_ai", false)
-    fun setOfflineOnlyAi(v: Boolean) = prefs.edit().putBoolean("offline_only_ai", v).apply()
+    fun setOfflineOnlyAi(v: Boolean) = prefs.edit { putBoolean("offline_only_ai", v) }
 
     fun getPinnedToolIds(): List<String> {
         val raw = prefs.getString("pinned_tools", "") ?: ""
@@ -216,7 +217,7 @@ class DotkitRepository(context: Context) {
     }
 
     fun setPinnedToolIds(ids: List<String>) =
-        prefs.edit().putString("pinned_tools", ids.distinct().joinToString(",")).apply()
+        prefs.edit { putString("pinned_tools", ids.distinct().joinToString(",")) }
 
     fun getRecentToolIds(): List<String> {
         val raw = prefs.getString("recent_tools", "") ?: ""
@@ -225,12 +226,12 @@ class DotkitRepository(context: Context) {
 
     fun pushRecentToolId(id: String) {
         val updated = (listOf(id) + getRecentToolIds().filter { it != id }).take(10)
-        prefs.edit().putString("recent_tools", updated.joinToString(",")).apply()
+        prefs.edit { putString("recent_tools", updated.joinToString(",")) }
     }
 
     fun getLastCaseStyle(): String = prefs.getString("last_case_style", "TITLE_AP") ?: "TITLE_AP"
-    fun setLastCaseStyle(styleName: String) = prefs.edit().putString("last_case_style", styleName).apply()
+    fun setLastCaseStyle(styleName: String) = prefs.edit { putString("last_case_style", styleName) }
 
     fun getLastHashAlgorithm(): String = prefs.getString("last_hash_alg", "SHA256") ?: "SHA256"
-    fun setLastHashAlgorithm(algName: String) = prefs.edit().putString("last_hash_alg", algName).apply()
+    fun setLastHashAlgorithm(algName: String) = prefs.edit { putString("last_hash_alg", algName) }
 }

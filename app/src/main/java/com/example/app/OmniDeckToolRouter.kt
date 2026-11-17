@@ -10,19 +10,23 @@ import com.example.services.storage.HealthLogEntity
 import com.example.services.storage.NoteEntity
 import com.example.services.storage.TallyCounterEntity
 import com.example.services.storage.VaultEntryEntity
+import com.example.tools.ai.AiStudioScreens
 import com.example.tools.benchmark.BenchmarkExtraScreen
 import com.example.tools.benchmark.BenchmarkMoreScreen
 import com.example.tools.benchmark.HumanBenchmarkScreens
 import com.example.tools.calc.CalcAndChartsScreen
 import com.example.tools.calc.EmiFinanceTool
+import com.example.tools.calc.RatioAndSubsScreens
 import com.example.tools.calc.SciCalcTool
 import com.example.tools.calc.UnitConverterTool
 import com.example.tools.common_suite.CommonToolsExtendedScreen
 import com.example.tools.daily.ColorContrastTool
 import com.example.tools.daily.NotesChecklistTool
+import com.example.tools.dev.DevExpansionThreeScreens
 import com.example.tools.dev.DevExtendedScreen
 import com.example.tools.dev.DevExtraToolsScreen
 import com.example.tools.dev.DevMoreScreen
+import com.example.tools.dev.NetworkSecurityExtraScreens
 import com.example.tools.dev.hash.HashGeneratorTool
 import com.example.tools.dev.json.JsonJwtTool
 import com.example.tools.dev.passqr.PasswordQrTool
@@ -38,6 +42,7 @@ import com.example.tools.games.GamesExtraScreen
 import com.example.tools.health.HealthExtraScreen
 import com.example.tools.health.HealthMoreScreen
 import com.example.tools.health.HealthScreens
+import com.example.tools.image.ImageExpansionScreens
 import com.example.tools.image.ImageStudioCoreScreen
 import com.example.tools.image.ImageStudioExtrasScreen
 import com.example.tools.measure.MeasureBasicScreen
@@ -440,6 +445,35 @@ fun OmniDeckToolRouter(
         )
         "dev-sqlfmt", "dev-cert", "dev-httpref" -> DevMoreScreen(
             meta = meta, initialText = incomingPayload,
+            isPinned = pinned, onTogglePin = onTogglePin, onBack = onBack,
+            onSaveToFiles = onSave, onSendToTool = onSend, onStatusToast = onToast
+        )
+
+        // 20. AI Studio & Web Expansion Pack III (195..206)
+        "ai-writer", "ai-prompt", "ai-code" -> AiStudioScreens(
+            meta = meta, initialText = incomingPayload,
+            isPinned = pinned, onTogglePin = onTogglePin, onBack = onBack,
+            onSaveToFiles = onSave, onSendToTool = onSend, onStatusToast = onToast
+        )
+        "dev-diffjson", "dev-svg", "dev-gradient" -> DevExpansionThreeScreens(
+            meta = meta, initialText = incomingPayload,
+            isPinned = pinned, onTogglePin = onTogglePin, onBack = onBack,
+            onSaveToFiles = onSave, onSendToTool = onSend, onStatusToast = onToast
+        )
+        "net-subnet", "net-totp" -> NetworkSecurityExtraScreens(
+            meta = meta, initialText = incomingPayload,
+            isPinned = pinned, onTogglePin = onTogglePin, onBack = onBack,
+            onSaveToFiles = onSave, onSendToTool = onSend, onStatusToast = onToast
+        )
+        "img-favicon", "img-palette" -> ImageExpansionScreens(
+            meta = meta, initialUri = incomingUri,
+            isPinned = pinned, onTogglePin = onTogglePin, onBack = onBack,
+            onSaveToFiles = onSave, onSendToTool = onSend, onStatusToast = onToast
+        )
+        "calc-ratio", "fin-subs" -> RatioAndSubsScreens(
+            meta = meta, expenses = expenses,
+            onAddExpense = { t, a, c, k, n -> vm.addExpense(t, a, c, k, n) },
+            onDeleteExpense = { vm.deleteExpense(it) },
             isPinned = pinned, onTogglePin = onTogglePin, onBack = onBack,
             onSaveToFiles = onSave, onSendToTool = onSend, onStatusToast = onToast
         )

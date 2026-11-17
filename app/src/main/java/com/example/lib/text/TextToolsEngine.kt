@@ -1,6 +1,6 @@
 package com.example.lib.text
 
-import android.util.Base64
+import com.example.lib.crypto.PureBase64
 import java.net.URLDecoder
 import java.net.URLEncoder
 
@@ -55,17 +55,9 @@ object TextToolsEngine {
         return bytes.decodeToString()
     }
 
-    fun toBase64(text: String): String = try {
-        Base64.encodeToString(text.encodeToByteArray(), Base64.NO_WRAP)
-    } catch (_: Throwable) {
-        java.util.Base64.getEncoder().encodeToString(text.encodeToByteArray())
-    }
+    fun toBase64(text: String): String = PureBase64.encode(text.encodeToByteArray())
 
-    fun fromBase64(b64: String): String = try {
-        Base64.decode(b64.trim(), Base64.DEFAULT).decodeToString()
-    } catch (_: Throwable) {
-        java.util.Base64.getDecoder().decode(b64.trim()).decodeToString()
-    }
+    fun fromBase64(b64: String): String = PureBase64.decode(b64.trim()).decodeToString()
 
     fun urlEncode(text: String): String = URLEncoder.encode(text, "UTF-8")
 

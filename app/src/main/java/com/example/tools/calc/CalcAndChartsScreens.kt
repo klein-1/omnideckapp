@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.graphics.Paint
 import android.graphics.RectF
 import android.graphics.Typeface
+import androidx.core.graphics.createBitmap
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -495,7 +496,7 @@ private fun renderChartBitmap(
     inkColor: Int,
     accentColor: Int
 ): Bitmap {
-    val bmp = Bitmap.createBitmap(900, 620, Bitmap.Config.ARGB_8888)
+    val bmp = createBitmap(900, 620)
     val c = android.graphics.Canvas(bmp)
     c.drawColor(bgColor)
     val textP = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = inkColor; textSize = 26f; typeface = Typeface.MONOSPACE }

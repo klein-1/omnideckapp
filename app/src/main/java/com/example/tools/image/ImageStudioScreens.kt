@@ -3,6 +3,8 @@ package com.example.tools.image
 import android.graphics.Bitmap
 import android.graphics.Color as AColor
 import android.net.Uri
+import androidx.core.graphics.createBitmap
+import androidx.core.graphics.scale
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -173,7 +175,7 @@ fun ImageStudioCoreScreen(
                         val w = if (wIn > 0) wIn.coerceIn(16, 4096) else (base.width * scalePct / 100f).roundToInt().coerceIn(16, 4096)
                         val hIn = targetH.toIntOrNull() ?: 0
                         val h = if (keepAspect || hIn <= 0) (w * base.height / base.width.coerceAtLeast(1)).coerceIn(16, 4096) else hIn.coerceIn(16, 4096)
-                        Bitmap.createScaledBitmap(base, w, h, true)
+                        base.scale(w, h)
                     }
                     "img-compress" -> src?.also {
                         val tKb = targetKbText.toIntOrNull() ?: 0
@@ -528,10 +530,10 @@ fun ImageStudioCoreScreen(
                         }
                         PixelButton(text = "Render Drawing / Meme & Share PNG", chapterHue = hue, onClick = {
                             val w = 1080; val h = 800
-                            var out = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+                            var out = createBitmap(w, h)
                             val c = android.graphics.Canvas(out)
                             c.drawColor(AColor.WHITE)
-                            sourceBmp?.let { c.drawBitmap(Bitmap.createScaledBitmap(it, w, h, true), 0f, 0f, null) }
+                            sourceBmp?.let { c.drawBitmap(it.scale(w, h), 0f, 0f, null) }
                             drawStrokes.forEach { (pts, col) ->
                                 val p = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
                                     color = col.toArgb(); strokeWidth = if (censorMode) 48f else 14f; style = android.graphics.Paint.Style.STROKE; strokeCap = android.graphics.Paint.Cap.ROUND

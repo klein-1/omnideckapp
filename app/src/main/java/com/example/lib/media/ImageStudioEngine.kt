@@ -17,9 +17,12 @@ import android.graphics.Rect
 import android.graphics.RectF
 import android.graphics.Shader
 import android.graphics.Typeface
-import android.media.ExifInterface
 import android.net.Uri
 import android.os.Build
+import androidx.core.graphics.createBitmap
+import androidx.core.graphics.scale
+import androidx.core.graphics.withRotation
+import androidx.exifinterface.media.ExifInterface
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.ByteArrayOutputStream
@@ -245,7 +248,7 @@ object ImageStudioEngine {
     }
 
     private fun applyColorMatrix(src: Bitmap, cm: ColorMatrix): Bitmap {
-        val out = Bitmap.createBitmap(src.width, src.height, Bitmap.Config.ARGB_8888)
+        val out = createBitmap(src.width, src.height)
         val canvas = Canvas(out)
         val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply { colorFilter = ColorMatrixColorFilter(cm) }
         canvas.drawBitmap(src, 0f, 0f, paint)
@@ -327,8 +330,8 @@ object ImageStudioEngine {
     fun pixelate(src: Bitmap, blockSize: Int): Bitmap {
         val w = max(1, src.width / blockSize)
         val h = max(1, src.height / blockSize)
-        val small = Bitmap.createScaledBitmap(src, w, h, false)
-        return Bitmap.createScaledBitmap(small, src.width, src.height, false)
+        val small = src.scale(w, h, false)
+        return small.scale(src.width, src.height, false)
     }
 
     private fun posterize(src: Bitmap, levels: Int): Bitmap {
@@ -442,8 +445,8 @@ object ImageStudioEngine {
                 targetW = rotated.width
                 targetH = (targetW / aspectRatio).roundToInt()
             }
-            val bg = boxBlur(Bitmap.createScaledBitmap(rotated, targetW / 4.coerceAtLeast(1), targetH / 4.coerceAtLeast(1), true), 6)
-            val scaledBg = Bitmap.createScaledBitmap(bg, targetW, targetH, true)
+            val bg = boxBlur(rotated.scale(targetW / 4.coerceAtLeast(1), targetH / 4.coerceAtLeast(1)), 6)
+            val scaledBg = bg.scale(targetW, targetH)
             val canvas = Canvas(scaledBg)
             canvas.drawBitmap(rotated, (targetW - rotated.width) / 2f, (targetH - rotated.height) / 2f, null)
             return scaledBg
@@ -496,20 +499,19 @@ object ImageStudioEngine {
             this.typeface = Typeface.create(Typeface.SANS_SERIF, Typeface.BOLD)
         }
         if (tiled) {
-            canvas.save()
-            canvas.rotate(-28f, out.width / 2f, out.height / 2f)
-            val stepX = max(220f, paint.measureText(text) + 80f)
-            val stepY = paint.textSize * 3.2f
-            var y = -out.height.toFloat()
-            while (y < out.height * 2f) {
-                var x = -out.width.toFloat()
-                while (x < out.width * 2f) {
-                    canvas.drawText(text, x, y, paint)
-                    x += stepX
+            canvas.withRotation(-28f, out.width / 2f, out.height / 2f) {
+                val stepX = max(220f, paint.measureText(text) + 80f)
+                val stepY = paint.textSize * 3.2f
+                var y = -out.height.toFloat()
+                while (y < out.height * 2f) {
+                    var x = -out.width.toFloat()
+                    while (x < out.width * 2f) {
+                        drawText(text, x, y, paint)
+                        x += stepX
+                    }
+                    y += stepY
                 }
-                y += stepY
             }
-            canvas.restore()
         } else {
             val tw = paint.measureText(text)
             canvas.drawText(text, out.width - tw - 28f, out.height - 28f, paint)
@@ -520,8 +522,8 @@ object ImageStudioEngine {
     fun makeCircleBorderAvatar(src: Bitmap, borderWidthPx: Int = 24, borderColor: Int = 0xFFFF4F00.toInt(), sizePx: Int = 720): Bitmap {
         val minSide = min(src.width, src.height)
         val cropped = Bitmap.createBitmap(src, (src.width - minSide) / 2, (src.height - minSide) / 2, minSide, minSide)
-        val scaled = Bitmap.createScaledBitmap(cropped, sizePx, sizePx, true)
-        val out = Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888)
+        val scaled = cropped.scale(sizePx, sizePx)
+        val out = createBitmap(sizePx, sizePx)
         val canvas = Canvas(out)
         val paint = Paint(Paint.ANTI_ALIAS_FLAG)
         val radius = sizePx / 2f
@@ -541,12 +543,12 @@ object ImageStudioEngine {
         val normWidth = 720
         val scaled = bitmaps.map { b ->
             val h = max(1, (b.height.toFloat() * normWidth / b.width).roundToInt())
-            Bitmap.createScaledBitmap(b, normWidth, h, true)
+            b.scale(normWidth, h)
         }
         return when (layout) {
             StitchLayout.VERTICAL -> {
                 val totalH = scaled.sumOf { it.height } + gapPx * (scaled.size + 1)
-                val out = Bitmap.createBitmap(normWidth + gapPx * 2, totalH, Bitmap.Config.ARGB_8888)
+                val out = createBitmap(normWidth + gapPx * 2, totalH)
                 val canvas = Canvas(out).apply { drawColor(bgColor) }
                 var y = gapPx.toFloat()
                 scaled.forEach { b ->
@@ -559,10 +561,10 @@ object ImageStudioEngine {
                 val targetH = 640
                 val hScaled = bitmaps.map { b ->
                     val w = max(1, (b.width.toFloat() * targetH / b.height).roundToInt())
-                    Bitmap.createScaledBitmap(b, w, targetH, true)
+                    b.scale(w, targetH)
                 }
                 val totalW = hScaled.sumOf { it.width } + gapPx * (hScaled.size + 1)
-                val out = Bitmap.createBitmap(totalW, targetH + gapPx * 2, Bitmap.Config.ARGB_8888)
+                val out = createBitmap(totalW, targetH + gapPx * 2)
                 val canvas = Canvas(out).apply { drawColor(bgColor) }
                 var x = gapPx.toFloat()
                 hScaled.forEach { b ->
@@ -577,12 +579,12 @@ object ImageStudioEngine {
                 val rows = (bitmaps.size + 1) / 2
                 val outW = cell * cols + gapPx * (cols + 1)
                 val outH = cell * rows + gapPx * (rows + 1)
-                val out = Bitmap.createBitmap(outW, outH, Bitmap.Config.ARGB_8888)
+                val out = createBitmap(outW, outH)
                 val canvas = Canvas(out).apply { drawColor(bgColor) }
                 bitmaps.forEachIndexed { idx, b ->
                     val r = idx / cols
                     val c = idx % cols
-                    val square = Bitmap.createScaledBitmap(b, cell, cell, true)
+                    val square = b.scale(cell, cell)
                     canvas.drawBitmap(square, (gapPx + c * (cell + gapPx)).toFloat(), (gapPx + r * (cell + gapPx)).toFloat(), null)
                 }
                 out
@@ -591,7 +593,7 @@ object ImageStudioEngine {
     }
 
     fun renderTextCard(title: String, body: String, bgHex: Int, fgHex: Int, accentHex: Int, width: Int = 1080, height: Int = 1080): Bitmap {
-        val out = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+        val out = createBitmap(width, height)
         val canvas = Canvas(out)
         canvas.drawColor(bgHex)
         val accentPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply { color = accentHex }
@@ -656,7 +658,7 @@ object ImageStudioEngine {
                     "Date Taken" to ExifInterface.TAG_DATETIME_ORIGINAL,
                     "Exposure" to ExifInterface.TAG_EXPOSURE_TIME,
                     "Aperture" to ExifInterface.TAG_F_NUMBER,
-                    "ISO" to @Suppress("DEPRECATION") ExifInterface.TAG_ISO_SPEED_RATINGS,
+                    "ISO" to ExifInterface.TAG_PHOTOGRAPHIC_SENSITIVITY,
                     "Focal Length" to ExifInterface.TAG_FOCAL_LENGTH,
                     "Orientation" to ExifInterface.TAG_ORIENTATION,
                     "Software" to ExifInterface.TAG_SOFTWARE
@@ -664,8 +666,8 @@ object ImageStudioEngine {
                 interesting.forEach { (label, tag) ->
                     exif.getAttribute(tag)?.takeIf { it.isNotBlank() }?.let { tags += label to it }
                 }
-                val latLon = FloatArray(2)
-                if (exif.getLatLong(latLon)) {
+                val latLon = exif.latLong
+                if (latLon != null) {
                     hasGps = true
                     tags += "GPS Coordinates" to "${"%.5f".format(latLon[0])}, ${"%.5f".format(latLon[1])}"
                 }
@@ -710,7 +712,7 @@ object ImageStudioEngine {
         val indexed = ByteArray(w * h)
 
         frames.forEach { frame ->
-            val scaled = Bitmap.createScaledBitmap(frame, w, h, true)
+            val scaled = frame.scale(w, h)
             scaled.getPixels(pix, 0, w, 0, 0, w, h)
             for (i in pix.indices) {
                 val c = pix[i]

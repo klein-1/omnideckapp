@@ -2,6 +2,7 @@ package com.example.tools.server
 
 import android.content.Intent
 import android.net.Uri
+import androidx.core.net.toUri
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Image
@@ -235,7 +236,7 @@ fun LocalHttpServerScreen(
                             })
                             Row(horizontalArrangement = Arrangement.spacedBy(6.dp)) {
                                 PixelChip(label = "QR", chapterHue = hue, onClick = { showQrForUrl = if (showQrForUrl == url) null else url })
-                                PixelChip(label = "Open", onClick = { runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(url)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) } })
+                                PixelChip(label = "Open", onClick = { runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, url.toUri()).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) } })
                             }
                         }
                     }

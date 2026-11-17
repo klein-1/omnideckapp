@@ -7,17 +7,17 @@ import androidx.compose.ui.graphics.Color
 const val APP_NAME = "Omni Deck"
 
 enum class ThemeMode(val label: String, val subtitle: String) {
-    PAPER("Daylight", "Crisp warm paper & cobalt"),
-    INK("Midnight", "True dark slate & vibrant accents"),
-    BLUEPRINT("Nordic Navy", "Deep oceanic blue & cyan"),
-    TERMINAL("Emerald", "Forest dark & phosphor mint"),
+    INK("Obsidian", "True OLED dark & electric cobalt"),
+    PAPER("Minimal Light", "Crisp white cards & subtle hairlines"),
+    BLUEPRINT("Nordic Navy", "Deep oceanic slate & sky"),
+    TERMINAL("Emerald", "Carbon dark & phosphor mint"),
     SEPIA("Sandstone", "Soft parchment & terracotta"),
     HIGH_CONTRAST("Contrast", "Ultra-legible monochrome"),
     AUTO("System", "Follow device dark mode")
 }
 
 enum class MotionMode(val label: String) {
-    FULL("Fluid"),
+    FULL("120Hz"),
     CALM("Gentle"),
     OFF("Instant")
 }
@@ -34,6 +34,7 @@ enum class RegionFormat(val label: String, val code: String, val currencySymbol:
 
 enum class ToolCategory(val id: String, val label: String, val hue: ChapterHue, val isFlagship: Boolean = false) {
     ALL("all", "All", ChapterHue.COBALT),
+    AI("ai", "AI Studio", ChapterHue.SKY, isFlagship = true),
     DOWNLOAD("download", "Downloader", ChapterHue.VERMILION, isFlagship = true),
     URL("url", "URL Safety", ChapterHue.TEAL, isFlagship = true),
     SERVER("server", "Local Server", ChapterHue.FOREST, isFlagship = true),
@@ -56,17 +57,17 @@ enum class ToolCategory(val id: String, val label: String, val hue: ChapterHue, 
 }
 
 enum class ChapterHue(val id: String, val label: String, val paperColor: Color, val inkColor: Color, val onColor: Color) {
-    VERMILION("vermilion", "Coral Orange", Color(0xFFE85325), Color(0xFFFF784F), Color(0xFFFFFFFF)),
+    VERMILION("vermilion", "Coral Orange", Color(0xFFE85325), Color(0xFFFF6B4A), Color(0xFFFFFFFF)),
     TANGERINE("tangerine", "Warm Amber", Color(0xFFD97706), Color(0xFFFBBF24), Color(0xFF141413)),
     MARIGOLD("marigold", "Saffron", Color(0xFFCA8A04), Color(0xFFFACC15), Color(0xFF141413)),
     LIME("lime", "Meadow", Color(0xFF4D7C0F), Color(0xFF84CC16), Color(0xFF141413)),
-    MINT("mint", "Emerald", Color(0xFF059669), Color(0xFF34D399), Color(0xFF0B1410)),
-    TEAL("teal", "Teal Cyan", Color(0xFF0891B2), Color(0xFF22D3EE), Color(0xFFFFFFFF)),
+    MINT("mint", "Emerald", Color(0xFF059669), Color(0xFF10B981), Color(0xFF06130E)),
+    TEAL("teal", "Teal Cyan", Color(0xFF0891B2), Color(0xFF06B6D4), Color(0xFFFFFFFF)),
     SKY("sky", "Azure Sky", Color(0xFF0284C7), Color(0xFF38BDF8), Color(0xFFFFFFFF)),
-    COBALT("cobalt", "Royal Blue", Color(0xFF2563EB), Color(0xFF60A5FA), Color(0xFFFFFFFF)),
-    ROSE("rose", "Crimson", Color(0xFFE11D48), Color(0xFFFB7185), Color(0xFFFFFFFF)),
+    COBALT("cobalt", "Electric Blue", Color(0xFF2563EB), Color(0xFF3B82F6), Color(0xFFFFFFFF)),
+    ROSE("rose", "Crimson", Color(0xFFE11D48), Color(0xFFF43F5E), Color(0xFFFFFFFF)),
     CLAY("clay", "Terracotta", Color(0xFFB45309), Color(0xFFF59E0B), Color(0xFFFFFFFF)),
-    FOREST("forest", "Sage", Color(0xFF0D9488), Color(0xFF2DD4BF), Color(0xFFFFFFFF)),
+    FOREST("forest", "Sage", Color(0xFF0D9488), Color(0xFF14B8A6), Color(0xFFFFFFFF)),
     SAND("sand", "Bronze", Color(0xFF92602D), Color(0xFFD6A46E), Color(0xFFFFFFFF));
 
     fun resolve(isDark: Boolean, isHighContrast: Boolean): Color {
@@ -132,7 +133,7 @@ val ALL_CHAPTERS: List<ChapterSpec> = listOf(
     ChapterSpec(18, "18", "Social & Web", "UTM, vCard, cURL & links", ChapterHue.TANGERINE, DitherPattern.CHAIN, "ch_social"),
     ChapterSpec(19, "19", "Developer", "Hashes, JSON, ECDSA & regex", ChapterHue.FOREST, DitherPattern.BRACES, "ch_dev"),
     ChapterSpec(20, "20", "Benchmark", "Reaction, Stroop, CPS & memory", ChapterHue.MARIGOLD, DitherPattern.SPARK, "ch_mind"),
-    ChapterSpec(21, "21", "AI Lab", "Optional helpers", ChapterHue.SKY, DitherPattern.NODES, "ch_ai"),
+    ChapterSpec(21, "21", "AI Studio", "Prompt & writing helpers", ChapterHue.SKY, DitherPattern.NODES, "ch_ai"),
     ChapterSpec(22, "22", "Vault & Files", "Saved files & encryption", ChapterHue.CLAY, DitherPattern.LOCK, "ch_vault")
 )
 
@@ -160,8 +161,8 @@ data class DotkitPalette(
     val hairline: Color
         get() = when {
             isHighContrast -> ink.copy(alpha = 0.72f)
-            isDark -> Color(0xFF2B313D)
-            else -> Color(0xFFE3E0D8)
+            isDark -> Color(0xFF23252E)
+            else -> Color(0xFFE4E6EC)
         }
     fun chapterColor(hue: ChapterHue): Color = hue.resolve(isDark, isHighContrast)
 }
@@ -169,12 +170,12 @@ data class DotkitPalette(
 val PaperPalette = DotkitPalette(
     isDark = false,
     isHighContrast = false,
-    paper = Color(0xFFF6F4EE),
+    paper = Color(0xFFF7F8FA),
     paper2 = Color(0xFFFFFFFF),
-    paper3 = Color(0xFFECEAE2),
-    ink = Color(0xFF17181C),
-    ink2 = Color(0xFF535763),
-    ink3 = Color(0xFF8A8E99),
+    paper3 = Color(0xFFEEF0F4),
+    ink = Color(0xFF09090B),
+    ink2 = Color(0xFF52525B),
+    ink3 = Color(0xFF8B8E99),
     focus = Color(0xFF2563EB),
     ok = Color(0xFF059669),
     warn = Color(0xFFD97706),
@@ -186,17 +187,17 @@ val PaperPalette = DotkitPalette(
 val InkPalette = DotkitPalette(
     isDark = true,
     isHighContrast = false,
-    paper = Color(0xFF0F1115),
-    paper2 = Color(0xFF171A21),
-    paper3 = Color(0xFF21252F),
-    ink = Color(0xFFF3F4F6),
-    ink2 = Color(0xFFA1A7B3),
-    ink3 = Color(0xFF6B7280),
-    focus = Color(0xFF60A5FA),
-    ok = Color(0xFF34D399),
+    paper = Color(0xFF070709),
+    paper2 = Color(0xFF111216),
+    paper3 = Color(0xFF1A1C23),
+    ink = Color(0xFFFAFAFA),
+    ink2 = Color(0xFFA1A1AA),
+    ink3 = Color(0xFF6E717C),
+    focus = Color(0xFF3B82F6),
+    ok = Color(0xFF10B981),
     warn = Color(0xFFFBBF24),
-    err = Color(0xFFFB7185),
-    info = Color(0xFF22D3EE),
+    err = Color(0xFFF43F5E),
+    info = Color(0xFF06B6D4),
     accent = ChapterHue.COBALT
 )
 
@@ -270,8 +271,8 @@ val HighContrastPalette = DotkitPalette(
 
 @Immutable
 data class DotkitLookState(
-    val themeMode: ThemeMode = ThemeMode.PAPER,
-    val palette: DotkitPalette = PaperPalette,
+    val themeMode: ThemeMode = ThemeMode.INK,
+    val palette: DotkitPalette = InkPalette,
     val accentHue: ChapterHue = ChapterHue.COBALT,
     val motionMode: MotionMode = MotionMode.FULL,
     val uiScale: Float = 1.0f,

@@ -45,6 +45,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
@@ -159,7 +160,7 @@ fun PixelBox(
             .fillMaxWidth()
             .clip(SwissCardShape)
             .background(backgroundColor)
-            .border(1.dp, borderColor, SwissCardShape)
+            .border(0.8.dp, borderColor, SwissCardShape)
             .padding(resolvedPadding),
         content = content
     )
@@ -582,7 +583,15 @@ fun PixelTextField(
     keyboardActions: KeyboardActions = KeyboardActions.Default,
     tag: String? = null
 ) {
-    val palette = LocalDotkitLook.current.palette
+    val look = LocalDotkitLook.current
+    val palette = look.palette
+    val accent = palette.chapterColor(chapterHue)
+    var isFocused by remember { mutableStateOf(false) }
+    val borderColor by animateColorAsState(
+        targetValue = if (isFocused) accent else palette.hairline,
+        animationSpec = tween(if (look.motionMode == MotionMode.OFF) 0 else 150),
+        label = "tf_border"
+    )
     val mod = if (tag != null) modifier.testTag(tag) else modifier
     Box(
         modifier = mod
@@ -590,7 +599,7 @@ fun PixelTextField(
             .defaultMinSize(minHeight = minHeight)
             .clip(SwissControlShape)
             .background(palette.paper)
-            .border(1.dp, palette.hairline, SwissControlShape)
+            .border(if (isFocused) 1.2.dp else 0.8.dp, borderColor, SwissControlShape)
             .padding(horizontal = 14.dp, vertical = 12.dp),
         contentAlignment = if (singleLine) Alignment.CenterStart else Alignment.TopStart
     ) {
@@ -606,10 +615,12 @@ fun PixelTextField(
             onValueChange = onValueChange,
             singleLine = singleLine,
             textStyle = DotkitType.monoData(14).copy(color = palette.ink),
-            cursorBrush = SolidColor(palette.chapterColor(chapterHue)),
+            cursorBrush = SolidColor(accent),
             keyboardOptions = keyboardOptions,
             keyboardActions = keyboardActions,
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
+                .onFocusChanged { isFocused = it.isFocused }
         )
     }
 }

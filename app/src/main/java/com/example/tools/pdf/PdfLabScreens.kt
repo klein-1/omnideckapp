@@ -3,6 +3,7 @@ package com.example.tools.pdf
 import android.graphics.Bitmap
 import android.graphics.RectF
 import android.net.Uri
+import androidx.core.graphics.createBitmap
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.PickVisualMediaRequest
 import androidx.activity.result.contract.ActivityResultContracts
@@ -205,7 +206,7 @@ fun PdfLabWorkbench(
 
     fun buildSigBitmap(): Bitmap? {
         if (!includeSignature || sigStrokes.isEmpty()) return null
-        val bmp = Bitmap.createBitmap(480, 180, Bitmap.Config.ARGB_8888)
+        val bmp = createBitmap(480, 180)
         val c = android.graphics.Canvas(bmp)
         val p = android.graphics.Paint(android.graphics.Paint.ANTI_ALIAS_FLAG).apply {
             color = android.graphics.Color.BLACK; strokeWidth = 6f; style = android.graphics.Paint.Style.STROKE; strokeCap = android.graphics.Paint.Cap.ROUND

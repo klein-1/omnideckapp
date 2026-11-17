@@ -23,20 +23,21 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.ui.draw.clip
 import com.example.design.DotkitType
 import com.example.design.HelpSheetCard
 import com.example.design.LocalDotkitLook
@@ -52,7 +53,7 @@ import com.example.registry.ToolRegistry
 
 /**
  * Clean, minimalist Tool Workbench Shell optimized for phones and tablets.
- * Uses pure symbol triggers (←, ★/☆, ?) without keyboard shortcut labels.
+ * Uses pure symbol triggers (←, ★/☆, ?) with a scroll-linked header divider.
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
@@ -79,6 +80,10 @@ fun ToolWorkbenchChrome(
     val chColor = palette.chapterColor(ch.hue)
     var showSendToSheet by remember { mutableStateOf(false) }
     var showHelp by remember { mutableStateOf(false) }
+    val scrollState = rememberScrollState()
+    val headerDividerAlpha by remember {
+        derivedStateOf { (scrollState.value / 48f).coerceIn(0f, 1f) }
+    }
 
     val compatibleTargets = remember(meta.id, outputKind) {
         ToolRegistry.findCompatibleSendToTargets(meta.id, outputKind)
@@ -93,14 +98,14 @@ fun ToolWorkbenchChrome(
         Column(
             modifier = Modifier
                 .widthIn(max = 860.dp)
-                .fillMaxWidth()
-                .verticalScroll(rememberScrollState())
-                .padding(horizontal = 16.dp, vertical = 12.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+                .fillMaxSize()
         ) {
-            // Minimalist Top Navigation Row (Symbols only: ←, ★/☆, ?)
+            // Sticky Minimalist Top Bar (Symbols only: ←, ★/☆, ?)
             Row(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(palette.paper)
+                    .padding(horizontal = 16.dp, vertical = 10.dp),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
@@ -117,18 +122,19 @@ fun ToolWorkbenchChrome(
                     ToolBadgeIcon(
                         meta = meta,
                         accentColor = chColor,
-                        sizeDp = 40.dp,
-                        iconSizeDp = 21.dp
+                        sizeDp = 38.dp,
+                        iconSizeDp = 20.dp
                     )
                     Column {
                         Text(
                             text = meta.name,
-                            style = DotkitType.editorialHeading(20),
-                            color = palette.ink
+                            style = DotkitType.editorialHeading(18),
+                            color = palette.ink,
+                            maxLines = 1
                         )
                         Text(
                             text = "${meta.category.label} · ${meta.tagline}",
-                            style = DotkitType.bodyUi(12),
+                            style = DotkitType.bodyUi(11),
                             color = palette.ink2,
                             maxLines = 1
                         )
@@ -149,14 +155,26 @@ fun ToolWorkbenchChrome(
                     )
                 }
             }
+            HorizontalDivider(
+                thickness = 0.8.dp,
+                color = palette.hairline.copy(alpha = headerDividerAlpha)
+            )
 
-            AnimatedVisibility(visible = showHelp) {
-                HelpSheetCard(
-                    specimenCode = meta.specimenCode,
-                    title = meta.name,
-                    paragraph = helpParagraph
-                )
-            }
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .fillMaxWidth()
+                    .verticalScroll(scrollState)
+                    .padding(horizontal = 16.dp, vertical = 12.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                AnimatedVisibility(visible = showHelp) {
+                    HelpSheetCard(
+                        specimenCode = meta.specimenCode,
+                        title = meta.name,
+                        paragraph = helpParagraph
+                    )
+                }
 
             if (undoMessage != null && onUndo != null) {
                 Row(
@@ -253,7 +271,7 @@ fun ToolWorkbenchChrome(
                         }
 
                         if (showSendToSheet && compatibleTargets.isNotEmpty()) {
-                            HorizontalDivider(thickness = 1.dp, color = palette.ink3)
+                            HorizontalDivider(thickness = 0.8.dp, color = palette.hairline)
                             FlowRow(
                                 horizontalArrangement = Arrangement.spacedBy(8.dp),
                                 verticalArrangement = Arrangement.spacedBy(8.dp)
@@ -263,7 +281,7 @@ fun ToolWorkbenchChrome(
                                         modifier = Modifier
                                             .clip(RoundedCornerShape(10.dp))
                                             .background(palette.paper)
-                                            .border(1.dp, palette.hairline, RoundedCornerShape(10.dp))
+                                            .border(0.8.dp, palette.hairline, RoundedCornerShape(10.dp))
                                             .clickable {
                                                 showSendToSheet = false
                                                 onSendToTool(target.id, outputText)
@@ -281,7 +299,8 @@ fun ToolWorkbenchChrome(
                     }
                 }
             }
-            Spacer(Modifier.height(20.dp))
+                Spacer(Modifier.height(24.dp))
+            }
         }
     }
 }

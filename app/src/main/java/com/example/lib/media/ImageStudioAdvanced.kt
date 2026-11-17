@@ -12,6 +12,8 @@ import android.graphics.RectF
 import android.graphics.Typeface
 import android.media.MediaMetadataRetriever
 import android.net.Uri
+import androidx.core.graphics.createBitmap
+import androidx.core.graphics.scale
 import java.io.ByteArrayOutputStream
 import java.io.OutputStream
 import java.util.zip.ZipEntry
@@ -148,7 +150,7 @@ object ImageStudioAdvanced {
     }
 
     fun computeDHash(bmp: Bitmap): Long {
-        val tiny = Bitmap.createScaledBitmap(bmp, 9, 8, true)
+        val tiny = bmp.scale(9, 8)
         val pix = IntArray(72)
         tiny.getPixels(pix, 0, 9, 0, 0, 9, 8)
         val lums = IntArray(72) { i ->
@@ -294,7 +296,7 @@ object ImageStudioAdvanced {
     fun upscale2xSharpened(src: Bitmap): Bitmap {
         val tw = (src.width * 2).coerceAtMost(3840)
         val th = (src.height * 2).coerceAtMost(3840)
-        val scaled = Bitmap.createScaledBitmap(src, tw, th, true)
+        val scaled = src.scale(tw, th)
         return ImageStudioEngine.applySingleFilter(scaled, ImageFilterStep(ImageFilterType.SHARPEN, 0.32f))
     }
 
@@ -315,7 +317,7 @@ object ImageStudioAdvanced {
         val pad = if (expandPct > 0) (min(working.width, working.height) * expandPct / 200f).roundToInt() else 0
         val outW = working.width + pad * 2 + borderPx * 2
         val outH = working.height + pad * 2 + borderPx * 2
-        val out = Bitmap.createBitmap(outW, outH, Bitmap.Config.ARGB_8888)
+        val out = createBitmap(outW, outH)
         val canvas = Canvas(out)
         if (pad > 0) canvas.drawColor(expandColor)
 
@@ -328,7 +330,7 @@ object ImageStudioAdvanced {
         val radius = if (circleCrop) min(rect.width(), rect.height()) / 2f else (min(rect.width(), rect.height()) * (cornerPct / 200f))
 
         if (radius > 0f) {
-            val clipped = Bitmap.createBitmap(rect.width().toInt(), rect.height().toInt(), Bitmap.Config.ARGB_8888)
+            val clipped = createBitmap(rect.width().toInt(), rect.height().toInt())
             val cc = Canvas(clipped)
             val p = Paint(Paint.ANTI_ALIAS_FLAG)
             cc.drawRoundRect(RectF(0f, 0f, rect.width(), rect.height()), radius, radius, p)
@@ -360,8 +362,8 @@ object ImageStudioAdvanced {
         val sheetW = cols * cellW + (cols + 1) * gap
         val sheetH = rows * cellH + (rows + 1) * gap
         val cropTile = ImageStudioEngine.transformGeometry(src, aspectRatio = cellW.toFloat() / cellH.toFloat())
-        val scaledTile = Bitmap.createScaledBitmap(cropTile, cellW, cellH, true)
-        val out = Bitmap.createBitmap(sheetW, sheetH, Bitmap.Config.ARGB_8888)
+        val scaledTile = cropTile.scale(cellW, cellH)
+        val out = createBitmap(sheetW, sheetH)
         val c = Canvas(out)
         c.drawColor(Color.WHITE)
         val cutPaint = Paint().apply { color = Color.LTGRAY; style = Paint.Style.STROKE; strokeWidth = 2f }
@@ -392,12 +394,12 @@ object ImageStudioAdvanced {
         if (frames.isEmpty()) return null
         val cCount = cols.coerceIn(1, frames.size)
         val rows = (frames.size + cCount - 1) / cCount
-        val out = Bitmap.createBitmap(cCount * cellPx, rows * cellPx, Bitmap.Config.ARGB_8888)
+        val out = createBitmap(cCount * cellPx, rows * cellPx)
         val canvas = Canvas(out)
         frames.forEachIndexed { idx, b ->
             val r = idx / cCount
             val col = idx % cCount
-            val tile = Bitmap.createScaledBitmap(b, cellPx, cellPx, true)
+            val tile = b.scale(cellPx, cellPx)
             canvas.drawBitmap(tile, (col * cellPx).toFloat(), (r * cellPx).toFloat(), null)
         }
         return out
@@ -410,7 +412,7 @@ object ImageStudioAdvanced {
             repeat(5) {
                 val bytes = ImageStudioEngine.compressToBytes(working, format, 100)
                 if (bytes.size <= targetBytes || min(working.width, working.height) < 120) return bytes to 100
-                working = Bitmap.createScaledBitmap(working, (working.width * 0.78f).toInt(), (working.height * 0.78f).toInt(), true)
+                working = working.scale((working.width * 0.78f).toInt(), (working.height * 0.78f).toInt())
             }
             return ImageStudioEngine.compressToBytes(working, format, 100) to 100
         }
@@ -428,7 +430,7 @@ object ImageStudioAdvanced {
             }
         }
         if (bestBytes.size > targetBytes && min(bmp.width, bmp.height) > 200) {
-            val down = Bitmap.createScaledBitmap(bmp, (bmp.width * 0.7f).toInt(), (bmp.height * 0.7f).toInt(), true)
+            val down = bmp.scale((bmp.width * 0.7f).toInt(), (bmp.height * 0.7f).toInt())
             val fallback = ImageStudioEngine.compressToBytes(down, format, 70)
             if (fallback.size < bestBytes.size) return fallback to 70
         }
@@ -458,7 +460,7 @@ object ImageStudioAdvanced {
         val sizes = listOf(16, 32, 48, 64, 128, 180, 192, 512)
         ZipOutputStream(out).use { zos ->
             sizes.forEach { sz ->
-                val resized = Bitmap.createScaledBitmap(src, sz, sz, true)
+                val resized = src.scale(sz, sz)
                 val bytes = ImageStudioEngine.compressToBytes(resized, ExportImageFormat.PNG, 100)
                 val fileName = if (sz == 180) "apple-touch-icon.png" else "icon-${sz}x${sz}.png"
                 zos.putNextEntry(ZipEntry(fileName))
@@ -484,7 +486,7 @@ object ImageStudioAdvanced {
             widths.forEach { w ->
                 val targetW = w.coerceAtMost(src.width.coerceAtLeast(320))
                 val targetH = max(1, (src.height.toFloat() * targetW / src.width).roundToInt())
-                val scaled = Bitmap.createScaledBitmap(src, targetW, targetH, true)
+                val scaled = src.scale(targetW, targetH)
                 val fileName = "${clean}-${w}w.${format.ext}"
                 zos.putNextEntry(ZipEntry(fileName))
                 zos.write(ImageStudioEngine.compressToBytes(scaled, format, quality))
@@ -499,7 +501,7 @@ object ImageStudioAdvanced {
     }
 
     fun extractPalette(src: Bitmap, maxColors: Int = 6): List<Int> {
-        val small = Bitmap.createScaledBitmap(src, 48, 48, true)
+        val small = src.scale(48, 48)
         val pix = IntArray(48 * 48)
         small.getPixels(pix, 0, 48, 0, 0, 48, 48)
         val buckets = HashMap<Int, Int>()
@@ -546,7 +548,7 @@ object ImageStudioAdvanced {
     fun replaceBackground(src: Bitmap, tolerance: Int, replaceColor: Int?, useBlurBg: Boolean): Bitmap {
         val cutout = ImageStudioEngine.removeBackgroundByCornerChroma(src, tolerance)
         if (replaceColor == null && !useBlurBg) return cutout
-        val out = Bitmap.createBitmap(src.width, src.height, Bitmap.Config.ARGB_8888)
+        val out = createBitmap(src.width, src.height)
         val c = Canvas(out)
         if (useBlurBg) {
             val blurred = ImageStudioEngine.boxBlur(src, 12)
@@ -567,7 +569,7 @@ object ImageStudioAdvanced {
             val step = (durMs * 1000L / count.coerceAtLeast(1)).coerceAtLeast(100_000L)
             for (i in 0 until count) {
                 val bmp = mmr.getFrameAtTime(i * step, MediaMetadataRetriever.OPTION_CLOSEST_SYNC)
-                if (bmp != null) frames += Bitmap.createScaledBitmap(bmp, 480, max(1, (bmp.height * 480f / bmp.width).roundToInt()), true)
+                if (bmp != null) frames += bmp.scale(480, max(1, (bmp.height * 480f / bmp.width).roundToInt()))
             }
         }
         runCatching { mmr.release() }

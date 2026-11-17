@@ -1,7 +1,7 @@
 package com.example.tools.urlcheck
 
 import android.content.Intent
-import android.net.Uri
+import androidx.core.net.toUri
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -213,7 +213,7 @@ fun UrlSafetyScreen(
                             onStatusToast("Pinned snapshot to Watchlist.")
                         })
                         PixelChip(label = "Open in Browser", chapterHue = hue, onClick = {
-                            runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, Uri.parse(r.cleanedUrl)).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
+                            runCatching { context.startActivity(Intent(Intent.ACTION_VIEW, r.cleanedUrl.toUri()).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) }
                         })
                         PixelChip(label = if (showQr) "Hide QR" else "QR Code", selected = showQr, chapterHue = hue, onClick = { showQr = !showQr })
                     }
